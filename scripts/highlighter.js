@@ -59,10 +59,9 @@ export function highlightLine(line, definedVars) {
   result = result.replace(/\b(plus|minus|times|divided by|divided|and|with|without|at|off|on|of|pa|from now|from|into|in|to|for|as a percentage|as a percent|as|percentage|percent|compounding|monthly|quarterly|annually|yearly|daily|weekly|what|x)\b/gi, '<span class="hl-operator">$1</span>');
 
   // Variable references — highlight defined variable names not already inside spans
-  if (definedVars && definedVars.size > 0) {
-    const varNames = [...definedVars].sort((a, b) => b.length - a.length);
-    const escaped = varNames.map(v => v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-    const varPattern = new RegExp(`\\b(${escaped.join('|')})\\b`, 'g');
+  if (definedVars && definedVars._cachedPattern) {
+    const varPattern = definedVars._cachedPattern;
+    varPattern.lastIndex = 0;
     result = result.replace(varPattern, (match, name, offset, original) => {
       const before = original.substring(0, offset);
       const opens = (before.match(/<span/g) || []).length;
@@ -77,12 +76,21 @@ export function highlightLine(line, definedVars) {
 
 export function highlightAll(input) {
   const definedVars = new Set();
+  definedVars._cachedPattern = null;
+  let lastSize = 0;
   return input.split('\n').map(line => {
     // Detect variable definitions before highlighting
     const assignMatch = line.match(/^(\w+)\s*[=:]/);
     if (assignMatch) definedVars.add(assignMatch[1]);
     const isMatch = line.match(/^(\w+)\s+is\s/);
     if (isMatch) definedVars.add(isMatch[1]);
+    // Only rebuild regex when new variables are added
+    if (definedVars.size > 0 && definedVars.size !== lastSize) {
+      const varNames = [...definedVars].sort((a, b) => b.length - a.length);
+      const escaped = varNames.map(v => v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+      definedVars._cachedPattern = new RegExp(`\\b(${escaped.join('|')})\\b`, 'g');
+      lastSize = definedVars.size;
+    }
     return highlightLine(line, definedVars);
   }).join('');
 }

@@ -63,13 +63,19 @@ export function formatResult(res) {
   return numberFormatter.format(rounded);
 }
 
+const tzFormatCache = new Map();
+
 function formatTimeInZone(date, ianaZone, label) {
-  const fmt = new Intl.DateTimeFormat('en-US', {
-    timeZone: ianaZone,
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  });
+  let fmt = tzFormatCache.get(ianaZone);
+  if (!fmt) {
+    fmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: ianaZone,
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+    tzFormatCache.set(ianaZone, fmt);
+  }
   return fmt.format(date).toLowerCase() + ' ' + label;
 }
 

@@ -78,12 +78,16 @@ function fromBase(baseValue, targetUnit) {
   return baseValue / UNIT_GROUPS[group][u];
 }
 
+// Pre-sort unit entries by scale descending (avoids re-sorting on every call)
+const SORTED_UNITS = {};
+for (const [group, units] of Object.entries(UNIT_GROUPS)) {
+  SORTED_UNITS[group] = Object.entries(units).sort((a, b) => b[1] - a[1]);
+}
+
 function bestUnit(baseValue, group) {
   if (group === 'temperature') return { value: baseValue, unit: 'c' };
-  if (!group || !UNIT_GROUPS[group]) return { value: baseValue, unit: null };
-  const units = UNIT_GROUPS[group];
-  // Sort units by scale descending
-  const sorted = Object.entries(units).sort((a, b) => b[1] - a[1]);
+  if (!group || !SORTED_UNITS[group]) return { value: baseValue, unit: null };
+  const sorted = SORTED_UNITS[group];
   for (const [unit, scale] of sorted) {
     const display = baseValue / scale;
     if (Math.abs(display) >= 1) {
@@ -315,24 +319,43 @@ function timezoneResult(date, tzLabel, ianaZone) {
   return { value: date.getTime(), prefix: '', unit: null, unitGroup: null, timezone: { label: tzLabel, iana: ianaZone } };
 }
 
+const datePartsFmtCache = new Map();
+const fullFmtCache = new Map();
+
+function getDatePartsFmt(tz) {
+  let fmt = datePartsFmtCache.get(tz);
+  if (!fmt) {
+    fmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz,
+      year: 'numeric', month: '2-digit', day: '2-digit',
+    });
+    datePartsFmtCache.set(tz, fmt);
+  }
+  return fmt;
+}
+
+function getFullFmt(tz) {
+  let fmt = fullFmtCache.get(tz);
+  if (!fmt) {
+    fmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz, hour12: false,
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+    });
+    fullFmtCache.set(tz, fmt);
+  }
+  return fmt;
+}
+
 function buildDateFromTime(hours, minutes, sourceIana) {
   const now = new Date();
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone: sourceIana,
-    year: 'numeric', month: '2-digit', day: '2-digit',
-  }).formatToParts(now);
+  const parts = getDatePartsFmt(sourceIana).formatToParts(now);
   const year = parts.find(p => p.type === 'year').value;
   const month = parts.find(p => p.type === 'month').value;
   const day = parts.find(p => p.type === 'day').value;
   const naive = new Date(`${year}-${month}-${day}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`);
-  // Compute offset: difference between source tz wall clock and UTC
-  const fmt = (tz) => new Intl.DateTimeFormat('en-US', {
-    timeZone: tz, hour12: false,
-    year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
-  }).format(now);
-  const utcMs = new Date(fmt('UTC')).getTime();
-  const srcMs = new Date(fmt(sourceIana)).getTime();
+  const utcMs = new Date(getFullFmt('UTC').format(now)).getTime();
+  const srcMs = new Date(getFullFmt(sourceIana).format(now)).getTime();
   return new Date(naive.getTime() - (srcMs - utcMs));
 }
 
@@ -343,11 +366,7 @@ function buildDateFromTime(hours, minutes, sourceIana) {
 function compound(principal, annualRate, years, frequency) {
   if (!frequency) frequency = 12;
   const r = annualRate / 100;
-  let accumulated = principal;
-  for (let i = 0; i < years * frequency; i++) {
-    accumulated += (r / frequency) * accumulated;
-  }
-  return accumulated;
+  return principal * Math.pow(1 + r / frequency, frequency * years);
 }
 
 // ============================================================

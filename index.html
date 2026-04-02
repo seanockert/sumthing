@@ -1,10 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Tiny Sums - a calculation scratchpad</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, viewport-fit=cover, initial-scale=1.0, interactive-widget=resizes-content">
   <meta name="description" content="A little text area that lets you calculate stuff with natural language">
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="description" content="Tap the numbers in order. Get a high score!" />
+  <link rel="apple-touch-icon" href="icon.png" />
+  <link rel="shortcut icon" href="icon.png" />
+  <link rel="manifest" href="/manifest.json" />
   <style>
     *, *::before, *::after {
       margin: 0;
@@ -19,30 +26,18 @@
       --color-text: hsl(0, 0%, 10%);
       --color-muted: hsl(0, 0%, 60%);
       --color-border: hsl(0, 0%, 90%);
-      --color-bg: hsl(0, 0%, 100%);
-      --color-hl-comment: hsl(0, 0%, 60%);
+      --color-bg: hsl(209, 72%, 98%);
+      --color-hl-comment: hsl(0, 0%, 50%);
       --color-hl-number: hsl(261, 51%, 51%);
       --color-hl-operator: hsl(0, 0%, 53%);
       --color-hl-keyword:hsl(202, 80%, 48%);
       --color-hl-variable: hsl(42, 86%, 51%);
       --color-result-hover-bg: var(--color-green);
       --color-result-active-bg: hsl(96, 50%, 40%);
-      --font-size: 1.1rem;
+      --font-size: 1.25rem;
       --line-height: 1.6;
       --padding: 2rem;
-      --easing-overshoot: linear(
-        0,
-        -0.044 9.4%,
-        -0.264 26.8%,
-        -0.265 34%,
-        -0.011 43%,
-        0.91 55.2%,
-        1.227 63.4%,
-        1.276 67.6%,
-        1.271 72.2%,
-        1.044 90.6%,
-        1
-      );
+      --easing-overshoot: linear(0,-0.044 9.4%,-0.264 26.8%,-0.265 34%,-0.011 43%,0.91 55.2%,1.227 63.4%,1.276 67.6%,1.271 72.2%,1.044 90.6%,1);
     }
 
     [data-theme="dark"] {
@@ -59,23 +54,27 @@
 
     html {
       font-family: var(--font-stack);
-      font-size: clamp(1rem, 1.5vw + 0.5rem, 1.25rem);
+      font-size: var(--font-size);
       color: var(--color-text);
       background: var(--color-bg);
     }
 
     body {
       min-height: 100dvh;
+      max-width: 100ch;
+      margin: 0 auto;
       display: grid;
       grid-template-rows: auto 1fr;
+      /* overflow: hidden; */
     }
 
-    /* --- Layout --- */
     header {
       padding: 0.5rem var(--padding);
     }
 
     header h1 {
+      display: flex;
+      align-items: center;
       font-size: 1rem;
       font-weight: 800;
       text-transform: uppercase;
@@ -91,6 +90,7 @@
     .editor {
       display: grid;
       grid-template-columns: 1fr auto;
+      /* overflow-y: auto; */
     }
 
     .input-container {
@@ -107,7 +107,7 @@
       padding: var(--padding);
       white-space: pre;
       width: 100%;
-      min-height: calc(100vh - 52px);
+      min-height: calc(100dvh - 52px);
       border: none;
       outline: none;
       resize: none;
@@ -152,7 +152,6 @@
     }
 
     .output-container {
-      flex: 1 1 30%;
       border-left: 1px solid var(--color-border);
       padding: var(--padding);
       text-align: right;
@@ -162,8 +161,17 @@
       font-family: var(--font-stack);
       font-size: var(--font-size);
       line-height: var(--line-height);
-      min-height: calc(var(--font-size) * var(--line-height));
       white-space: nowrap;
+    }
+
+    /* Force line height to be the same as the textarea */
+    .result-line::after {
+      content: '\200b';
+    }
+
+    .result-line.active .result-value {
+      color: var(--color-hl-variable);
+      text-shadow: 0 0 1rem var(--color-hl-variable);
     }
 
     .result-value {
@@ -260,9 +268,9 @@
       transform: translateX(-50%) translateY(1rem);
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: 640px) {
       :root {
-        --font-size: 1rem;
+        --font-size: 1.125rem;
         --padding: 1rem;
       }
     }
@@ -270,7 +278,7 @@
 </head>
 <body>
   <header>
-    <h1><em>Tiny</em>Sums</h1>
+    <h1><svg width="24" height="24" fill="none" viewBox="0 0 196 196"><path fill="currentColor" d="M163.317 139.804a10.2 10.2 0 0 1-8.776 7.692L53.95 158.682a10.2 10.2 0 0 1-10.252-5.576 34 34 0 0 1-2.6-23.368 10.2 10.2 0 0 1 8.777-7.692l100.591-11.187a10.2 10.2 0 0 1 10.252 5.576 34 34 0 0 1 2.599 23.369M155.169 66.53a10.2 10.2 0 0 1-8.777 7.692L45.802 85.41a10.2 10.2 0 0 1-10.253-5.576 34 34 0 0 1-2.599-23.369 10.2 10.2 0 0 1 8.777-7.692l100.591-11.187a10.2 10.2 0 0 1 10.252 5.576 34 34 0 0 1 2.599 23.369"/></svg><em>Tiny</em>Sums</h1>
     <button class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">
       <svg fill="none" class="theme-light" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0"/></svg>
       <svg fill="none" class="theme-dark" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.7 9.7 0 0 1 18 15.75 9.75 9.75 0 0 1 8.25 6c0-1.33.266-2.597.748-3.752A9.75 9.75 0 0 0 3 11.25 9.75 9.75 0 0 0 12.75 21a9.75 9.75 0 0 0 9.002-5.998"/></svg>
@@ -287,7 +295,8 @@
 
   <div class="toast" id="toast">Copied!</div>
 
-  <script src="https://unpkg.com/ohm-js@17/dist/ohm.min.js"></script>
+  <script src="scripts/ohm.min.js"></script>
   <script type="module" src="scripts/app.js"></script>
+  <!-- <script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/service-worker.js'); }</script> -->
 </body>
 </html>

@@ -8,12 +8,12 @@ import { fetchRates } from './currency.js';
 const STORAGE_KEY = 'tinysums_v2';
 const DEBOUNCE_MS = 300;
 
-const DEFAULT_INPUT = `// Define values to use in calculations
+const DEFAULT_INPUT = `// Define values to use below
 days = 15
 
 // Define some variables
-food: $12 * days
-transport: $3.50 * days
+food: $12 x days
+transport: $3.50 x days
 
 // Add up all the above
 sum
@@ -21,17 +21,28 @@ sum
 // Use units like kg
 20kg plus 1900g
 
-// Quickly calculate percentages
-32% off $429
+// Convert units
+5km in miles 
+1.5tbsp in grams
+2 cups in ml
+1 gallon in l
+68f to c
+64mph in km/h
 
-// Convert currencies
-100 USD in EUR
+// Percentages
+32% off $429
+34/78 in percent
 
 // Or compound interest
 $4000.22 at 3% pa
 
-// Dates and more
-today`;
+// Convert currencies
+1000 JPY in AUD
+
+// Dates and timezones
+today
+weeks in 2026
+15:30 GMT in AEST`;
 
 // ============================================================
 // DOM references
@@ -48,17 +59,23 @@ const themeToggle = document.getElementById('themeToggle');
 // ============================================================
 
 let debounceTimer = null;
+let rafPending = false;
+let scrollRafPending = false;
 const HAS_FIELD_SIZING = CSS.supports('field-sizing', 'content');
 
 // ============================================================
 // Core update loop
 // ============================================================
 
-// Instant visual feedback — runs on every keystroke, no debounce
+// Instant visual feedback — batched to one update per frame
 function syncVisuals() {
-  const input = textarea.value;
-  highlightLayer.innerHTML = highlightAll(input);
-  autoResize();
+  if (rafPending) return;
+  rafPending = true;
+  requestAnimationFrame(() => {
+    highlightLayer.innerHTML = highlightAll(textarea.value);
+    autoResize();
+    rafPending = false;
+  });
 }
 
 // Expensive work — parsing + evaluation, debounced
@@ -70,20 +87,44 @@ function evalAndSave() {
 }
 
 function renderOutput(results) {
-  outputContainer.innerHTML = '';
-  for (const res of results) {
-    const div = document.createElement('div');
-    div.className = 'result-line';
-    const formatted = formatResult(res);
-    if (formatted) {
-      const btn = document.createElement('button');
-      btn.className = 'result-value';
-      btn.textContent = formatted;
-      btn.title = 'Click to copy';
-      btn.addEventListener('click', () => copyToClipboard(formatted));
-      div.appendChild(btn);
+  const existing = outputContainer.children;
+
+  for (let i = 0; i < results.length; i++) {
+    const formatted = formatResult(results[i]);
+    let div = existing[i];
+
+    if (!div) {
+      div = document.createElement('div');
+      div.className = 'result-line';
+      outputContainer.appendChild(div);
     }
-    outputContainer.appendChild(div);
+
+    const btn = div.firstChild;
+    if (formatted) {
+      if (btn && btn.tagName === 'BUTTON') {
+        // Reuse existing button
+        if (btn.textContent !== formatted) {
+          btn.textContent = formatted;
+          btn.onclick = () => copyToClipboard(formatted);
+        }
+      } else {
+        // Create new button
+        div.innerHTML = '';
+        const newBtn = document.createElement('button');
+        newBtn.className = 'result-value';
+        newBtn.textContent = formatted;
+        newBtn.title = 'Click to copy';
+        newBtn.onclick = () => copyToClipboard(formatted);
+        div.appendChild(newBtn);
+      }
+    } else if (btn) {
+      div.innerHTML = '';
+    }
+  }
+
+  // Remove excess rows
+  while (existing.length > results.length) {
+    outputContainer.removeChild(outputContainer.lastChild);
   }
 }
 
@@ -161,8 +202,40 @@ textarea.addEventListener('input', () => {
 
 // Sync scroll between textarea and highlight layer
 textarea.addEventListener('scroll', () => {
-  highlightLayer.scrollTop = textarea.scrollTop;
-  highlightLayer.scrollLeft = textarea.scrollLeft;
+  if (scrollRafPending) return;
+  scrollRafPending = true;
+  requestAnimationFrame(() => {
+    highlightLayer.scrollTop = textarea.scrollTop;
+    highlightLayer.scrollLeft = textarea.scrollLeft;
+    scrollRafPending = false;
+  });
+});
+
+// Highlight corresponding output line on hover
+let activeResultLine = null;
+let cachedPaddingTop = 0;
+let cachedLineHeight = 1;
+
+function cacheTextareaMetrics() {
+  const style = getComputedStyle(textarea);
+  cachedPaddingTop = parseFloat(style.paddingTop);
+  cachedLineHeight = parseFloat(style.lineHeight);
+}
+
+textarea.addEventListener('mousemove', (e) => {
+  const y = e.clientY - textarea.getBoundingClientRect().top - cachedPaddingTop + textarea.scrollTop;
+  const resultLine = outputContainer.children[Math.floor(y / cachedLineHeight)] || null;
+  if (resultLine === activeResultLine) return;
+  if (activeResultLine) activeResultLine.classList.remove('active');
+  if (resultLine) resultLine.classList.add('active');
+  activeResultLine = resultLine;
+});
+
+textarea.addEventListener('mouseleave', () => {
+  if (activeResultLine) {
+    activeResultLine.classList.remove('active');
+    activeResultLine = null;
+  }
 });
 
 // ============================================================
@@ -175,6 +248,8 @@ async function init() {
   textarea.value = saved || DEFAULT_INPUT;
   syncVisuals();
   evalAndSave();
+  cacheTextareaMetrics();
+  window.addEventListener('resize', cacheTextareaMetrics);
   textarea.focus();
 
   // Fetch currency rates in background, re-evaluate when ready

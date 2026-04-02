@@ -4,7 +4,7 @@ A little text area that lets you calculate stuff with natural language.
 
 Based on an Ohm.js parser, allows you to set variables and do back of the envelope calculations line by line. Useful for when you don't need something as complex as a spreadsheet.
 
-[Demo here](https://so-tinysums.surge.sh)
+[Demo here](https://tinysums.seanockert.com)
 
 ### Example
 
@@ -114,15 +114,15 @@ Convert between units with `in`, `to`, `into`, or `as`.
 
 ### Supported units
 
-| Category | Units |
-|----------|-------|
-| Length | mm, cm, m, km, inch ("), feet/ft ('), yard/yd, mile/mi |
-| Mass | mg, g, kg |
-| Volume | ml, l |
-| Data | b, kb, mb, gb |
-| Time | sec, min, hr, day, week |
-| Speed | kph, mph, mps, fps, knot |
-| Temperature | celsius/c, fahrenheit/f, kelvin/k |
+| Category    | Units                                                  |
+| ----------- | ------------------------------------------------------ |
+| Length      | mm, cm, m, km, inch ("), feet/ft ('), yard/yd, mile/mi |
+| Mass        | mg, g, kg                                              |
+| Volume      | ml, l                                                  |
+| Data        | b, kb, mb, gb                                          |
+| Time        | sec, min, hr, day, week                                |
+| Speed       | kph, mph, mps, fps, knot                               |
+| Temperature | celsius/c, fahrenheit/f, kelvin/k                      |
 
 ### Fractional units
 
