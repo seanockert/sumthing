@@ -82,7 +82,7 @@
     /* --- Input side --- */
     .input-container {
       position: relative;
-      flex: 1 1 65%;
+      flex: 1 1 100%;
       min-width: 0;
     }
 
@@ -122,10 +122,11 @@
 
     /* --- Output side --- */
     .output-container {
-      flex: 0 0 30%;
+      flex: 1 1 30%;
       border-left: 1px solid var(--color-border);
       padding: var(--padding);
       padding-left: 1.5rem;
+      text-align: right;
     }
 
     .result-line {
@@ -204,12 +205,16 @@
       border-color: var(--color-teal);
     }
 
-    [data-theme="light"] .theme-toggle .theme-dark {
+    :not([data-theme="dark"]) .theme-toggle .theme-dark {
       display: none;
     }
 
     [data-theme="dark"] .theme-toggle .theme-light {
       display: none;
+    }
+
+    [data-theme="dark"] .theme-toggle .theme-dark {
+      display: flex;
     }
 
     .toast {

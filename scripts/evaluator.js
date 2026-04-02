@@ -15,11 +15,20 @@ const UNIT_GROUPS = {
   speed:  { kph: 1, mph: 1.60934, mps: 3.6, fps: 1.09728, knot: 1.852 },
 };
 
+const TEMP_CONVERSIONS = {
+  c: { toBase: v => v, fromBase: v => v },
+  f: { toBase: v => (v - 32) * 5 / 9, fromBase: v => v * 9 / 5 + 32 },
+  k: { toBase: v => v - 273.15, fromBase: v => v + 273.15 },
+};
+
 const UNIT_TO_GROUP = {};
 for (const [group, units] of Object.entries(UNIT_GROUPS)) {
   for (const unit of Object.keys(units)) {
     UNIT_TO_GROUP[unit] = group;
   }
+}
+for (const u of Object.keys(TEMP_CONVERSIONS)) {
+  UNIT_TO_GROUP[u] = 'temperature';
 }
 
 function normalizeUnit(raw) {
@@ -35,18 +44,33 @@ function normalizeUnit(raw) {
     'm/s': 'mps',
     'ft/s': 'fps',
     knots: 'knot',
+    celsius: 'c', fahrenheit: 'f', kelvin: 'k',
   };
   return aliases[u] || u;
 }
 
 function toBase(value, unit) {
   const u = normalizeUnit(unit);
+  if (TEMP_CONVERSIONS[u]) {
+    return { value: TEMP_CONVERSIONS[u].toBase(value), group: 'temperature', unit: u };
+  }
   const group = UNIT_TO_GROUP[u];
   if (!group) return { value, group: null, unit: u };
   return { value: value * UNIT_GROUPS[group][u], group };
 }
 
+function fromBase(baseValue, targetUnit) {
+  const u = normalizeUnit(targetUnit);
+  if (TEMP_CONVERSIONS[u]) {
+    return TEMP_CONVERSIONS[u].fromBase(baseValue);
+  }
+  const group = UNIT_TO_GROUP[u];
+  if (!group) return baseValue;
+  return baseValue / UNIT_GROUPS[group][u];
+}
+
 function bestUnit(baseValue, group) {
+  if (group === 'temperature') return { value: baseValue, unit: 'c' };
   if (!group || !UNIT_GROUPS[group]) return { value: baseValue, unit: null };
   const units = UNIT_GROUPS[group];
   // Sort units by scale descending
@@ -70,7 +94,18 @@ function result(value, prefix = '', unit = null, unitGroup = null) {
   return { value, prefix, unit, unitGroup };
 }
 
+function parseNum(s) {
+  return parseFloat(s.replace(/,/g, ''));
+}
+
 function mergeUnits(a, b) {
+  // Temperature arithmetic: convert both to base (celsius), operate, keep as celsius
+  if (a.unitGroup === 'temperature' || b.unitGroup === 'temperature') {
+    if (a.unitGroup === 'temperature' && b.unitGroup === 'temperature') {
+      return { unitGroup: 'temperature', aBase: toBase(a.value, a.unit).value, bBase: toBase(b.value, b.unit).value };
+    }
+    return null;
+  }
   // If both have units in the same group, arithmetic in base units
   if (a.unitGroup && b.unitGroup && a.unitGroup === b.unitGroup) {
     return { unitGroup: a.unitGroup, aBase: toBase(a.value, a.unit).value, bBase: toBase(b.value, b.unit).value };
@@ -221,6 +256,22 @@ function compound(principal, annualRate, years, frequency) {
 // Build grammar + semantics
 // ============================================================
 
+function convertUnits(val, targetUnitStr) {
+  const target = normalizeUnit(targetUnitStr);
+  const group = UNIT_TO_GROUP[target];
+  if (group === 'temperature' && val.unitGroup === 'temperature') {
+    const baseVal = toBase(val.value, val.unit).value;
+    const converted = fromBase(baseVal, target);
+    return result(converted, val.prefix, target, 'temperature');
+  }
+  if (group && val.unitGroup === group) {
+    const baseVal = toBase(val.value, val.unit).value;
+    const converted = fromBase(baseVal, target);
+    return result(converted, val.prefix, target, group);
+  }
+  return val;
+}
+
 let _grammar = null;
 let _semantics = null;
 
@@ -232,21 +283,56 @@ export function getGrammarAndSemantics() {
 
     Line(node) { return node.eval(this.args.state); },
 
-    Calculation_conversion(expr, _inKw, targetUnit) {
+    // --- Percentage queries ---
+    PercentQuery_whatPercentOf(value, _is, _what, _pct, _of, total) {
       const s = this.args.state;
-      const val = expr.eval(s);
-      const target = normalizeUnit(targetUnit.sourceString);
-      const group = UNIT_TO_GROUP[target];
-      if (group && val.unitGroup === group) {
-        const baseVal = toBase(val.value, val.unit).value;
-        const converted = baseVal / UNIT_GROUPS[group][target];
-        return result(converted, val.prefix, target, group);
-      }
-      return val;
+      const v = value.eval(s);
+      const t = total.eval(s);
+      if (t.value === 0) return result(0, '', '%', null);
+      return result((v.value / t.value) * 100, '', '%', null);
+    },
+    PercentQuery_isPercentOfWhat(knownResult, _is, pctExpr, _of, _what) {
+      const s = this.args.state;
+      const r = knownResult.eval(s);
+      const p = pctExpr.eval(s);
+      if (p.value === 0) return result(0, r.prefix);
+      return result(r.value / p.value, r.prefix, r.unit, r.unitGroup);
+    },
+    PercentQuery_percentChange(from, _to, to, _is, _what, _pct) {
+      const s = this.args.state;
+      const f = from.eval(s);
+      const t = to.eval(s);
+      if (f.value === 0) return result(0, '', '%', null);
+      return result(((t.value - f.value) / f.value) * 100, '', '%', null);
+    },
+    PercentQuery_isPercentOffWhat(knownResult, _is, pctExpr, _off, _what) {
+      const s = this.args.state;
+      const r = knownResult.eval(s);
+      const p = pctExpr.eval(s);
+      const factor = 1 - p.value;
+      if (factor === 0) return result(0, r.prefix);
+      return result(r.value / factor, r.prefix, r.unit, r.unitGroup);
+    },
+
+    Calculation_inPercent(expr, _inKw, _aKw, _pctWord) {
+      const val = expr.eval(this.args.state);
+      return result(val.value * 100, '', '%', null);
+    },
+    Calculation_conversion(expr, _inKw, targetUnit) {
+      return convertUnits(expr.eval(this.args.state), targetUnit.sourceString);
+    },
+    Calculation_toConversion(expr, _toKw, targetUnit) {
+      return convertUnits(expr.eval(this.args.state), targetUnit.sourceString);
+    },
+    Calculation_intoConversion(expr, _intoKw, targetUnit) {
+      return convertUnits(expr.eval(this.args.state), targetUnit.sourceString);
     },
     Calculation_asPercent(expr, _asKw, _aKw, _pctWord) {
       const val = expr.eval(this.args.state);
       return result(val.value * 100, '', '%', null);
+    },
+    Calculation_asConversion(expr, _asKw, targetUnit) {
+      return convertUnits(expr.eval(this.args.state), targetUnit.sourceString);
     },
     Calculation(expr) { return expr.eval(this.args.state); },
 
@@ -284,7 +370,7 @@ export function getGrammarAndSemantics() {
       const l = left.eval(s);
       const r = right.eval(s);
       const opStr = op.sourceString.trim();
-      if (opStr === '/' || opStr === 'divided by' || opStr === 'divided') {
+      if (opStr === '/' || opStr === '\u00f7' || opStr === 'divided by' || opStr === 'divided') {
         return divideResults(l, r);
       }
       return multiplyResults(l, r);
@@ -306,20 +392,26 @@ export function getGrammarAndSemantics() {
 
     // --- Currency ---
     Currency(symbol, num, kSuffix) {
-      let val = parseFloat(num.sourceString);
+      let val = parseNum(num.sourceString);
       if (kSuffix.sourceString) val *= 1000;
       return result(val, symbol.sourceString);
     },
 
     // --- Numbers ---
     NumberLit(num, kSuffix) {
-      let val = parseFloat(num.sourceString);
+      let val = parseNum(num.sourceString);
       if (kSuffix.sourceString) val *= 1000;
       return result(val);
     },
 
+    number_commaDecimal(_d1, _d2, _d3, _commas, _cd1, _cd2, _cd3, _dot, _frac) {
+      return result(parseNum(this.sourceString));
+    },
     number_decimal(_int, _dot, _frac) {
       return result(parseFloat(this.sourceString));
+    },
+    number_commaWhole(_d1, _d2, _d3, _commas, _cd1, _cd2, _cd3) {
+      return result(parseNum(this.sourceString));
     },
     number_whole(_digits) {
       return result(parseFloat(this.sourceString));
@@ -330,14 +422,14 @@ export function getGrammarAndSemantics() {
       return fq.eval(this.args.state);
     },
     Quantity_simple(num, suffix) {
-      const raw = parseFloat(num.sourceString);
+      const raw = parseNum(num.sourceString);
       const unit = normalizeUnit(suffix.sourceString);
       const group = UNIT_TO_GROUP[unit];
       return result(raw, '', unit, group || null);
     },
 
     fracQuantity(num1, _slash, num2, suffix) {
-      const raw = parseFloat(num1.sourceString) / parseFloat(num2.sourceString);
+      const raw = parseNum(num1.sourceString) / parseNum(num2.sourceString);
       const unit = normalizeUnit(suffix.sourceString);
       const group = UNIT_TO_GROUP[unit];
       return result(raw, '', unit, group || null);
@@ -345,7 +437,7 @@ export function getGrammarAndSemantics() {
 
     // --- Bare percent (modifier) ---
     Percent(num, _pct) {
-      const p = parseFloat(num.sourceString);
+      const p = parseNum(num.sourceString);
       const r = result(p / 100);
       r.isPercent = true;
       return r;
@@ -370,27 +462,38 @@ export function getGrammarAndSemantics() {
 
     // --- Percentages ---
     PercentOf(num, _pct, _of, expr) {
-      const p = parseFloat(num.sourceString);
+      const p = parseNum(num.sourceString);
       const val = expr.eval(this.args.state);
       return result(p / 100 * val.value, val.prefix, val.unit, val.unitGroup);
     },
 
     PercentOff(num, _pct, _off, expr) {
-      const p = parseFloat(num.sourceString);
+      const p = parseNum(num.sourceString);
       const val = expr.eval(this.args.state);
       return result(val.value - (p / 100 * val.value), val.prefix, val.unit, val.unitGroup);
     },
 
     PercentOn(num, _pct, _on, expr) {
-      const p = parseFloat(num.sourceString);
+      const p = parseNum(num.sourceString);
       const val = expr.eval(this.args.state);
       return result(val.value + (p / 100 * val.value), val.prefix, val.unit, val.unitGroup);
     },
 
     // --- Compound Interest ---
-    CompoundInterest(expr, _atKw, rate, _pct, _paKw) {
+    CompoundInterest_full(expr, _forKw, durationExpr, _yearWord, _atKw, rate, _pct, _compKw, freqWord) {
+      const s = this.args.state;
+      const val = expr.eval(s);
+      const years = durationExpr.eval(s).value;
+      const r = parseNum(rate.sourceString);
+      const freqMap = { monthly: 12, quarterly: 4, annually: 1, yearly: 1, daily: 365, weekly: 52 };
+      const freqStr = freqWord.sourceString.trim().toLowerCase();
+      const frequency = freqMap[freqStr] || 12;
+      const accumulated = compound(val.value, r, years, frequency);
+      return result(accumulated, val.prefix, val.unit, val.unitGroup);
+    },
+    CompoundInterest_simple(expr, _atKw, rate, _pct, _paKw) {
       const val = expr.eval(this.args.state);
-      const r = parseFloat(rate.sourceString);
+      const r = parseNum(rate.sourceString);
       const accumulated = compound(val.value, r, 1, 12);
       return result(accumulated, val.prefix, val.unit, val.unitGroup);
     },
@@ -466,12 +569,22 @@ export function getGrammarAndSemantics() {
     dateKw(_) { return null; },
     atKw(_) { return null; },
     paKw(_) { return null; },
+    forKw(_) { return null; },
+    yearWord(_) { return null; },
+    compoundingKw(_) { return null; },
+    frequencyWord(_) { return null; },
     fromKw(_) { return null; },
     nowKw(_) { return null; },
     inKw(_) { return null; },
+    intoKw(_) { return null; },
+    toKw(_) { return null; },
     asKw(_) { return null; },
     aKw(_) { return null; },
     pctWord(_) { return null; },
+    pctQWord(_) { return null; },
+    whatKw(_) { return null; },
+    ofKw(_) { return null; },
+    offKw(_) { return null; },
     timeUnitWord(_) { return null; },
     reserved(_) { return null; },
     nameStart(_) { return null; },

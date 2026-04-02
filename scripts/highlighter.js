@@ -22,28 +22,28 @@ export function highlightLine(line, definedVars) {
   result = result.replace(/^(\w+)(\s*[=:])/, '<span class="hl-variable">$1</span>$2');
 
   // Currency amounts
-  result = result.replace(/([$€£])(\d+(?:\.\d+)?[Kk]?)/g, '<span class="hl-number">$1$2</span>');
+  result = result.replace(/([$€£])(\d+(?:,\d+)*(?:\.\d+)?[Kk]?)/g, '<span class="hl-number">$1$2</span>');
 
   // Percentages
-  result = result.replace(/(\d+(?:\.\d+)?%)/g, '<span class="hl-number">$1</span>');
+  result = result.replace(/(\d+(?:,\d+)*(?:\.\d+)?%)/g, '<span class="hl-number">$1</span>');
 
   // Fraction quantities (e.g. 1/8inch, 1/8", 3/4')
   result = result.replace(/(\d+\/\d+(?:kmph|km\/hr|km\/h|kph|kmh|k\/hr|mph|m\/s|mps|ft\/s|fps|knots?|inches|inch|feet|foot|ft|yards?|yd|miles?|mi|kg|mg|km|cm|mm|ml|kb|mb|gb|weeks?|hours?|days?|mins?|secs?|hrs?|g|l|m|b|&quot;|'))\b/gi, '<span class="hl-number">$1</span>');
 
   // Numbers with units (avoid double-highlighting currency)
-  result = result.replace(/(?<!["$€£\d])(\d+(?:\.\d+)?(?:kmph|km\/hr|km\/h|kph|kmh|k\/hr|mph|m\/s|mps|ft\/s|fps|knots?|inches|inch|feet|foot|ft|yards?|yd|miles?|mi|kg|mg|km|cm|mm|ml|kb|mb|gb|weeks?|hours?|days?|mins?|secs?|hrs?|g|l|m|b))\b/gi, '<span class="hl-number">$1</span>');
+  result = result.replace(/(?<!["$€£\d])(\d+(?:,\d+)*(?:\.\d+)?(?:kmph|km\/hr|km\/h|kph|kmh|k\/hr|mph|m\/s|mps|ft\/s|fps|knots?|inches|inch|feet|foot|ft|yards?|yd|miles?|mi|kg|mg|km|cm|mm|ml|kb|mb|gb|weeks?|hours?|days?|mins?|secs?|hrs?|celsius|fahrenheit|kelvin|g|l|m|b))\b/gi, '<span class="hl-number">$1</span>');
 
   // Numbers with " or ' symbol units (e.g. 5", 3')
-  result = result.replace(/(?<!<span[^>]*>)(\d+(?:\.\d+)?)((&quot;)|')/g, '<span class="hl-number">$1$2</span>');
+  result = result.replace(/(?<!<span[^>]*>)(\d+(?:,\d+)*(?:\.\d+)?)((&quot;)|')/g, '<span class="hl-number">$1$2</span>');
 
   // Plain numbers not already highlighted
-  result = result.replace(/(?<!<span[^>]*>)(?<![.$€£\d])(\d+(?:\.\d+)?[Kk]?)(?![^<]*<\/span>)/g, '<span class="hl-number">$1</span>');
+  result = result.replace(/(?<!<span[^>]*>)(?<![.$€£\d])(\d+(?:,\d+)*(?:\.\d+)?[Kk]?)(?![^<]*<\/span>)/g, '<span class="hl-number">$1</span>');
 
   // Keywords
-  result = result.replace(/\b(sum|total|now|today|prev|previous|avg|average|weeks?|months?|days?|hours?|minutes?|seconds?)\b/gi, '<span class="hl-keyword">$1</span>');
+  result = result.replace(/\b(sum|total|now|today|prev|previous|avg|average|weeks?|months?|days?|hours?|minutes?|seconds?|celsius|fahrenheit|kelvin)\b/gi, '<span class="hl-keyword">$1</span>');
 
   // Word operators
-  result = result.replace(/\b(plus|minus|times|divided by|divided|and|with|without|at|off|on|of|pa|from now|from|in|as a percentage|as a percent|as|percentage|percent)\b/gi, '<span class="hl-operator">$1</span>');
+  result = result.replace(/\b(plus|minus|times|divided by|divided|and|with|without|at|off|on|of|pa|from now|from|into|in|to|for|as a percentage|as a percent|as|percentage|percent|compounding|monthly|quarterly|annually|yearly|daily|weekly|what|x)\b/gi, '<span class="hl-operator">$1</span>');
 
   // Variable references — highlight defined variable names not already inside spans
   if (definedVars && definedVars.size > 0) {

@@ -31,9 +31,21 @@ export function formatResult(res) {
     return res.prefix + currencyFormatter.format(rounded);
   }
 
+  // Percentage result (from percentage queries)
+  if (res.unit === '%') {
+    return numberFormatter.format(rounded) + '%';
+  }
+
+  // Temperature
+  if (res.unitGroup === 'temperature') {
+    const symbols = { c: '\u00b0C', f: '\u00b0F', k: 'K' };
+    return numberFormatter.format(rounded) + ' ' + (symbols[res.unit] || res.unit);
+  }
+
   // Quantity with units
   if (res.unit) {
-    return numberFormatter.format(rounded) + res.unit;
+    const sep = (res.unit === '"' || res.unit === "'") ? '' : ' ';
+    return numberFormatter.format(rounded) + sep + res.unit;
   }
 
   // Plain number

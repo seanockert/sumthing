@@ -9,13 +9,29 @@ TinySums {
     | FromNow
     | DateTime
     | Variable
+    | PercentQuery
     | Calculation
     | WordsLine
 
   Calculation
-    = Expression inKw unitSuffix                     -- conversion
+    = Expression inKw aKw? pctWord                   -- inPercent
+    | Expression inKw unitSuffix                     -- conversion
+    | Expression toKw unitSuffix                     -- toConversion
+    | Expression intoKw unitSuffix                   -- intoConversion
     | Expression asKw aKw? pctWord                   -- asPercent
+    | Expression asKw unitSuffix                     -- asConversion
     | Expression
+
+  PercentQuery
+    = Expression isKw whatKw pctQWord ofKw Expression    -- whatPercentOf
+    | Expression isKw Expression ofKw whatKw             -- isPercentOfWhat
+    | Expression toKw Expression isKw whatKw pctQWord    -- percentChange
+    | Expression isKw Expression offKw whatKw            -- isPercentOffWhat
+
+  whatKw  = "what" ~alnum
+  ofKw   = "of" ~alnum
+  offKw  = "off" ~alnum
+  pctQWord = "%" | "percent" ~alnum
 
   FromNow
     = Expression fromKw nowKw
@@ -35,8 +51,8 @@ TinySums {
     | Power
 
   mulOp
-    = "*" | "/" | "\u00d7"
-    | "times" ~alnum | "divided by" ~alnum | "divided" ~alnum
+    = "*" | "/" | "\u00d7" | "\u00f7"
+    | "x" ~letter | "times" ~alnum | "divided by" ~alnum | "divided" ~alnum
 
   Power
     = Factor "^" Power                              -- pow
@@ -125,15 +141,24 @@ TinySums {
 
   // --- Compound Interest ---
   CompoundInterest
-    = Expression atKw number "%" paKw
+    = Expression forKw Expression yearWord atKw number "%" compoundingKw? frequencyWord?  -- full
+    | Expression atKw number "%" paKw                                                      -- simple
 
   atKw = "at" ~alnum
   paKw = "pa" ~alnum
+  forKw = "for" ~alnum
+  yearWord = "years" ~alnum | "year" ~alnum
+  compoundingKw = "compounding" ~alnum
+  frequencyWord
+    = "monthly" ~alnum | "quarterly" ~alnum | "annually" ~alnum
+    | "daily" ~alnum | "weekly" ~alnum | "yearly" ~alnum
 
   // --- From now / conversion / percentage ---
   fromKw  = "from" ~alnum
   nowKw   = "now" ~alnum
   inKw    = "in" ~alnum
+  intoKw  = "into" ~alnum
+  toKw    = "to" ~alnum
   asKw    = "as" ~alnum
   aKw     = "a" ~alnum
   pctWord = "percentage" ~alnum | "percent" ~alnum | "%"
@@ -175,12 +200,14 @@ TinySums {
   reserved
     = ("sum" | "total" | "now" | "today"
       | "prev" | "previous" | "avg" | "average"
-      | "is") ~alnum
+      | "is" | "x" | "to" | "what") ~alnum
 
   // --- Number primitives ---
   number
-    = digit+ "." digit+                             -- decimal
-    | digit+                                        -- whole
+    = digit digit? digit? ("," digit digit digit)+ "." digit+   -- commaDecimal
+    | digit+ "." digit+                                          -- decimal
+    | digit digit? digit? ("," digit digit digit)+               -- commaWhole
+    | digit+                                                      -- whole
 
   // --- Unit suffixes (order matters: longer first) ---
   // Case-insensitive multi-char units use caseInsensitive<>
@@ -206,6 +233,7 @@ TinySums {
     | caseInsensitive<"mins"> ~alnum | caseInsensitive<"min"> ~alnum
     | caseInsensitive<"secs"> ~alnum | caseInsensitive<"sec"> ~alnum
     | caseInsensitive<"hrs"> ~alnum | caseInsensitive<"hr"> ~alnum
+    | caseInsensitive<"celsius"> ~alnum | caseInsensitive<"fahrenheit"> ~alnum | caseInsensitive<"kelvin"> ~alnum
     | caseInsensitive<"g"> | caseInsensitive<"l"> | caseInsensitive<"b">
     | "m" ~alnum
     | "\"" | "'"
