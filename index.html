@@ -22,35 +22,31 @@
 
     :root {
       --font-stack: sans-serif;
-      --color-green: hsl(96, 50%, 40%);
-      --color-text: hsl(0, 0%, 10%);
-      --color-border: hsl(0, 0%, 90%);
-      --color-bg: hsl(209, 72%, 98%);
-      --color-hl-comment: hsl(0, 0%, 50%);
-      --color-hl-number: hsl(261, 51%, 51%);
-      --color-hl-operator: hsl(0, 0%, 53%);
+      --color-green: light-dark(hsl(96, 50%, 40%), hsl(96, 40%, 60%));
+      --color-text: light-dark(hsl(0, 0%, 10%), hsl(240, 23%, 90%));
+      --color-border: light-dark(hsl(0, 0%, 90%), hsl(240, 23%, 22%));
+      --color-bg: light-dark(hsl(209, 72%, 98%), hsl(220, 23%, 10%));
+      --color-hl-comment: light-dark(hsl(0, 0%, 50%), hsl(240, 15%, 50%));
+      --color-hl-number: light-dark(hsl(261, 51%, 51%), hsl(257, 85%, 79%));
+      --color-hl-operator: light-dark(hsl(0, 0%, 53%), hsl(240, 43%, 70%));
       --color-hl-keyword:hsl(202, 80%, 48%);
       --color-hl-variable: hsl(42, 86%, 51%);
       --color-result-hover-bg: var(--color-green);
-      --color-result-active-bg: hsl(96, 50%, 40%);
+      --color-result-active-bg: var(--color-green);
       --font-size: 1.25rem;
+      --font-size-small: 0.8em;
       --line-height: 1.6;
       --padding: 2rem;
       --padding-half: 1rem;
       --padding-quarter: 0.5rem;
       --border-radius: 0.5rem;
       --easing-overshoot: linear(0,-0.044 9.4%,-0.264 26.8%,-0.265 34%,-0.011 43%,0.91 55.2%,1.227 63.4%,1.276 67.6%,1.271 72.2%,1.044 90.6%,1);
+      color-scheme: light dark;
     }
 
-    [data-theme="dark"] {
-      --color-green: hsl(96, 40%, 60%);
-      --color-text: hsl(240, 23%, 90%);
-      --color-border: hsl(240, 23%, 22%);
-      --color-bg: hsl(240, 23%, 12%);
-      --color-hl-comment: hsl(240, 15%, 50%);
-      --color-hl-number: hsl(257, 85%, 79%);
-      --color-hl-operator: hsl(240, 43%, 70%);
-      --color-result-active-bg: hsl(96, 50%, 60%);
+    ::selection {
+      background: var(--color-green);
+      color: var(--color-bg);
     }
 
     html {
@@ -62,18 +58,41 @@
 
     body {
       min-height: 100dvh;
-      max-width: 100ch;
-      margin: 0 auto;
       display: grid;
       grid-template-rows: auto 1fr auto;
       padding-top: env(safe-area-inset-top);
     }
 
-    header {
+    button {
+      all: unset;
+      line-height: 1;
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+      line-height: 1;
       display: flex;
       align-items: center;
+      justify-content: center;
+      transition: transform 0.25s var(--easing-overshoot), color 0.1s ease-out;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:not(:disabled):hover,
+    button:not(:disabled):focus-visible {
+      transform: scale(1.03);
+    }
+
+    button:not(:disabled):active {
+      transform: scale(0.97, 1.03);
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
       justify-content: space-between;
-      padding: var(--padding-quarter) var(--padding) 0 var(--padding);
+      padding: var(--padding-quarter) var(--padding-quarter) 0 var(--padding-quarter);
     }
 
     header h1 {
@@ -93,15 +112,28 @@
     header div {
       display: flex;
       align-items: center;
+      gap: var(--padding-quarter);
     }
 
     header button {
       padding: var(--padding-quarter);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      font-size: var(--font-size-small);
+    }
+
+    header button.icon {
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      border: 1px solid var(--color-border);
     }
 
     .editor {
       display: grid;
       grid-template-columns: 1fr auto;
+      max-width: 100ch;
+      margin: 0 auto;
+      width: 100%;
     }
 
     .input-container {
@@ -118,7 +150,6 @@
       padding: var(--padding);
       white-space: pre;
       width: 100%;
-      min-height: calc(100dvh - 3.375rem);
       border: none;
       outline: none;
       resize: none;
@@ -145,33 +176,11 @@
       mask-image: linear-gradient(to right, black 90%, transparent 100%);
     }
 
-    button {
-      all: unset;
-      line-height: 1;
-      font: inherit;
-      color: inherit;
-      cursor: pointer;
-      line-height: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.25s var(--easing-overshoot), color 0.1s ease-out;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    button:not(:disabled):hover,
-    button:not(:disabled):focus-visible {
-      transform: scale(1.03);
-    }
-
-    button:not(:disabled):active {
-      transform: scale(0.97, 1.03);
-    }
-
     .output-container {
       border-left: 1px solid var(--color-border);
       padding: var(--padding);
       text-align: right;
+      min-width: 10ch;
     }
 
     .result-line {
@@ -196,7 +205,7 @@
     .result-value {
       display: inline;
       color: var(--color-green);
-      padding: 0 0.4rem;
+      padding: 0.3rem 0.4rem;
       border-radius: var(--border-radius);
     }
 
@@ -216,54 +225,24 @@
     .hl-operator { color: var(--color-hl-operator); }
     .hl-variable { color: var(--color-hl-variable); }
 
-    .theme-toggle svg {
-      flex-shrink: 0;
-      display: block;
-      width: 1rem;
-      height: 1rem;
-    }
-
-    .theme-toggle .theme-dark {
-      transform: scale(0.8);
-    }
-
-    :not([data-theme="dark"]) .theme-toggle .theme-dark {
-      display: none;
-    }
-
-    [data-theme="dark"] .theme-toggle .theme-light {
-      display: none;
-    }
-
-    [data-theme="dark"] .theme-toggle .theme-dark {
-      display: flex;
-    }
-
     .sheet-bar {
-      display: flex;
-      gap: var(--padding-quarter);
-      padding: 0;
       overflow-x: auto;
       scrollbar-width: none;
       -webkit-overflow-scrolling: touch;
       mask-image: linear-gradient(to right, black 90%, transparent 100%);
+      white-space: nowrap;
+      text-align: center;
     }
 
     .sheet-bar::-webkit-scrollbar { display: none; }
 
     .sheet-tab {
-      position: relative;
-      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
       max-width: 16rem;
-      padding: 0.4rem 1.75rem 0.4rem 0.75rem;
-      font-size: 0.85rem;
-      line-height: 1;
-      color: var(--color-muted);
-      border: 1px solid var(--color-border);
-      border-bottom: none;
-      border-radius: var(--border-radius) var(--border-radius) 0 0;
-      cursor: pointer;
-      white-space: nowrap;
+      padding: var(--padding-quarter) 0 var(--padding-quarter) var(--padding-quarter);
+      border-right: 1px solid var(--color-border);
+      border-top: 1px solid var(--color-border);
       overflow: hidden;
       text-overflow: ellipsis;
       transition: color 0.15s, background 0.15s;
@@ -274,13 +253,7 @@
     }
 
     .sheet-tab .delete-sheet {
-      position: absolute;
-      right: 0.25rem;
-      top: 50%;
-      transform: translateY(-50%);
-      padding: 0 0.25rem;
-      line-height: 1;
-      transition: opacity 0.15s, color 0.15s;
+      padding: 0 var(--padding-quarter);
     }
 
     .toast {
@@ -302,6 +275,121 @@
       transform: translateX(-50%) translateY(1rem);
     }
 
+    dialog {
+      padding: 0 var(--padding-half) var(--padding-half) var(--padding-half);
+      width: 44ch;
+      max-height: 96vh;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate3d(-50%, -50%, 0);
+      border: none;
+      border-radius: var(--border-radius);
+      background: var(--color-bg);
+      color: var(--color-text);
+      z-index: 100;
+      overflow: auto;
+      text-wrap: pretty;
+      line-height: var(--line-height);
+    }
+
+    dialog > div {
+      display: flex;
+      flex-direction: column;
+      gap: var(--padding);
+    }
+
+    dialog section {
+      display: flex;
+      flex-direction: column;
+      gap: var(--padding-quarter);
+    }
+
+    dialog header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0;
+      font-weight: 800;
+      padding-top: var(--padding-half);
+      background: var(--color-bg);
+      color: var(--color-green);
+      z-index: 1;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    dialog::backdrop {
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(4px);
+    }
+
+    dialog section h3 {
+      font-size: inherit;
+    }
+
+    dialog section pre {
+      font-family: var(--font-family);
+      white-space: pre;
+    }
+
+    dialog section p {
+      font-size: var(--font-size-small);
+    }
+
+    button.theme-toggle span {
+      display: flex;
+      justify-content: start;
+      gap: var(--padding-quarter);
+      padding: 0 var(--padding-quarter);
+    }
+
+    .theme-toggle {
+      width: max-content;
+      margin-left: calc(var(--padding-quarter) * -1);
+    }
+
+    .theme-toggle svg {
+      flex-shrink: 0;
+      display: block;
+      width: 1rem;
+      height: 1rem;
+    }
+
+    :not([data-theme="dark"]) .theme-toggle .theme-light {
+      display: none;
+    }
+
+    [data-theme="dark"] .theme-toggle .theme-dark {
+      display: none;
+    }
+
+    [data-theme="dark"] .theme-toggle .theme-light {
+      display: flex;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        color-scheme: dark;
+      }
+    }
+
+    [data-theme="dark"] {
+      color-scheme: dark;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      html {
+        interpolate-size: allow-keywords;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        transition-duration: 0;
+      }
+    }
+
     @media (max-width: 640px) {
       :root {
         --font-size: 1.125rem;
@@ -321,7 +409,8 @@
       .output-container {
         border: none;
         padding: var(--padding) 0;
-        position: absolute;
+        pointer-events: none;
+        position: fixed;
         right: 0;
         z-index: 3;
       }
@@ -331,7 +420,12 @@
       }
 
       .result-line > button {
+        pointer-events: auto;
         margin: 0 var(--padding-quarter);
+      }
+
+      dialog {
+        width: 96vw;
       }
     }
   </style>
@@ -341,12 +435,9 @@
     <h1><svg width="24" height="24" fill="none" viewBox="0 0 196 196"><path fill="currentColor" d="M163.317 139.804a10.2 10.2 0 0 1-8.776 7.692L53.95 158.682a10.2 10.2 0 0 1-10.252-5.576 34 34 0 0 1-2.6-23.368 10.2 10.2 0 0 1 8.777-7.692l100.591-11.187a10.2 10.2 0 0 1 10.252 5.576 34 34 0 0 1 2.599 23.369M155.169 66.53a10.2 10.2 0 0 1-8.777 7.692L45.802 85.41a10.2 10.2 0 0 1-10.253-5.576 34 34 0 0 1-2.599-23.369 10.2 10.2 0 0 1 8.777-7.692l100.591-11.187a10.2 10.2 0 0 1 10.252 5.576 34 34 0 0 1 2.599 23.369"/></svg><em>Tiny</em>Sums</h1>
     
     <div>
-      <button class="add-sheet" id="addSheet" title="New sheet" aria-label="New sheet">
-        <svg fill="none" stroke="currentColor" stroke-width="2" height="16" width="16" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-      </button>
-      <button class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">
-        <svg fill="none" class="theme-light" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0"/></svg>
-        <svg fill="none" class="theme-dark" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.7 9.7 0 0 1 18 15.75 9.75 9.75 0 0 1 8.25 6c0-1.33.266-2.597.748-3.752A9.75 9.75 0 0 0 3 11.25 9.75 9.75 0 0 0 12.75 21a9.75 9.75 0 0 0 9.002-5.998"/></svg>
+      <button onclick="document.getElementById('help').showModal(); document.body.style.overflow='hidden'">Help</button>
+      <button class="icon" id="addSheet" title="New sheet" aria-label="New sheet">
+        <svg fill="none" height="16" width="16" viewBox="0 0 24 24"><rect width="6" height="20" x="9" y="2" fill="currentColor" rx="3"/><rect width="6" height="20" x="21.8" y="8.4" fill="currentColor" rx="3" transform="rotate(87 21.8 8.4)"/></svg>
       </button>
     </div>
   </header>
@@ -362,6 +453,88 @@
   <nav class="sheet-bar" id="sheetBar"></nav>
 
   <div class="toast" id="toast">Copied!</div>
+
+  <dialog id="help" onclick="if(event.target===this)this.close()">
+    <div>
+      <header>How to use
+        <form method="dialog">
+          <button>
+            <svg fill="none" stroke="currentColor" stroke-width="1.5" height="20" width="20" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+          </button>
+        </form>
+      </header>
+
+      <section>
+        <button class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">
+          <span class="theme-light"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.3m6.4.3-1.6 1.6M21 12h-2.2m-.4 6.4-1.6-1.6m-4.8 2V21m-4.8-4.2-1.6 1.6M5.3 12H3m4.2-4.8L5.6 5.6M15.8 12a3.8 3.8 0 1 1-7.5 0 3.8 3.8 0 0 1 7.5 0"/></svg> Toggle light mode</span>
+          <span class="theme-dark"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.7 9.7 0 0 1 18 15.75 9.75 9.75 0 0 1 8.25 6c0-1.33.266-2.597.748-3.752A9.75 9.75 0 0 0 3 11.25 9.75 9.75 0 0 0 12.75 21a9.75 9.75 0 0 0 9.002-5.998"/></svg> Toggle dark mode</span>
+        </button>
+      </section>
+      
+      <section>
+        <h3>Arithmetic</h3>
+        <pre><span class="hl-number">5</span> <span class="hl-operator">+</span> <span class="hl-number">3</span>
+<span class="hl-number">10</span> <span class="hl-operator">minus</span> <span class="hl-number">5</span>
+<span class="hl-number">5</span> <span class="hl-operator">times</span> <span class="hl-number">3</span>
+<span class="hl-number">20</span> <span class="hl-operator">divided by</span> <span class="hl-number">4</span>
+<span class="hl-number">2</span> ^ <span class="hl-number">10</span>
+(<span class="hl-number">5</span> <span class="hl-operator">+</span> <span class="hl-number">3</span>) <span class="hl-operator">x</span> <span class="hl-number">2</span></pre>
+      </section>
+
+      <section>
+        <h3>Currency &amp; percentages</h3>
+        <pre><span class="hl-number">$100</span> <span class="hl-operator">+</span> <span class="hl-number">$50</span>
+<span class="hl-number">€200</span> <span class="hl-operator">x</span> <span class="hl-number">3</span>
+<span class="hl-number">20%</span> <span class="hl-operator">of</span> <span class="hl-number">$500</span> <span class="hl-comment">&rarr; $100</span>
+<span class="hl-number">10%</span> <span class="hl-operator">off</span> <span class="hl-number">$30</span> <span class="hl-comment">&rarr; $27</span>
+<span class="hl-number">$100</span> <span class="hl-operator">-</span> <span class="hl-number">20%</span> <span class="hl-comment">&rarr; $80</span>
+<span class="hl-number">50</span> <span class="hl-operator">is what</span> % <span class="hl-operator">of</span> <span class="hl-number">200</span> <span class="hl-comment">&rarr; 25%</span>
+<span class="hl-number">50</span> <span class="hl-keyword">USD</span> <span class="hl-operator">in</span> <span class="hl-keyword">EUR</span> <span class="hl-comment">&rarr; convert</span>
+<span class="hl-number">$100</span> <span class="hl-operator">to</span> <span class="hl-keyword">GBP</span></pre>
+        <p>20 currencies: USD, EUR, GBP, AUD, CAD, NZD, JPY, CHF, CNY, INR, SGD, HKD, KRW, SEK, NOK, DKK, BRL, ZAR, MXN, THB</p>
+      </section>
+
+      <section>
+        <h3>Variables &amp; totals</h3>
+        <pre><span class="hl-variable">days</span> = <span class="hl-number">15</span>
+<span class="hl-variable">food</span>: <span class="hl-number">$12</span> <span class="hl-operator">x</span> <span class="hl-variable">days</span> <span class="hl-comment">&rarr; $180</span>
+<span class="hl-variable">transport</span>: <span class="hl-number">$3.50</span> <span class="hl-operator">x</span> <span class="hl-variable">days</span>
+<span class="hl-keyword">sum</span> <span class="hl-comment">&rarr; $232.50</span></pre>
+        <p><code>=</code> for constants, <code>:</code> or <code>is</code> for values included in <span class="hl-keyword">sum</span>/<span class="hl-keyword">avg</span>.</p>
+      </section>
+
+      <section>
+        <h3>Unit conversions</h3>
+        <pre><span class="hl-number">5km</span> <span class="hl-operator">in</span> <span class="hl-keyword">miles</span>
+<span class="hl-number">100f</span> <span class="hl-operator">to</span> <span class="hl-keyword">c</span>
+<span class="hl-number">2</span> <span class="hl-keyword">cups</span> <span class="hl-operator">in</span> <span class="hl-number">ml</span>
+<span class="hl-number">1</span> <span class="hl-keyword">gallon</span> <span class="hl-operator">in</span> <span class="hl-number">l</span>
+<span class="hl-number">1.5</span><span class="hl-keyword">tbsp</span> <span class="hl-operator">in</span> <span class="hl-keyword">grams</span></pre>
+        <p><strong>Length:</strong> mm, cm, m, km, inch, ft, yard, mile<br>
+        <strong>Mass:</strong> mg, g, kg<br>
+        <strong>Volume:</strong> tsp, tbsp, floz, cup, pint, quart, l, gallon, ml<br>
+        <strong>Speed:</strong> kph, mph, mps, fps, knot<br>
+        <strong>Data:</strong> b, kb, mb, gb<br>
+        <strong>Temp:</strong> celsius, fahrenheit, kelvin</p>
+      </section>
+
+      <section>
+        <h3>Timezones &amp; dates</h3>
+        <pre><span class="hl-number">3:30pm</span> <span class="hl-keyword">EST</span> <span class="hl-operator">in</span> <span class="hl-keyword">UTC</span>
+<span class="hl-keyword">now</span> <span class="hl-operator">in</span> <span class="hl-keyword">PST</span>
+<span class="hl-keyword">today</span>
+<span class="hl-number">5</span> <span class="hl-keyword">days</span> <span class="hl-operator">from now</span>
+<span class="hl-keyword">days</span> <span class="hl-operator">in</span> <span class="hl-number">2025</span> <span class="hl-comment">&rarr; 365</span></pre>
+      </section>
+
+      <section>
+        <h3>More</h3>
+        <pre><span class="hl-number">$1000</span> <span class="hl-operator">for</span> <span class="hl-number">5</span> <span class="hl-keyword">years</span> <span class="hl-operator">at</span> <span class="hl-number">3%</span> <span class="hl-operator">monthly</span>
+<span class="hl-keyword">prev</span> <span class="hl-operator">+</span> <span class="hl-number">5</span> <span class="hl-comment">&rarr; previous result</span></pre>
+      </section>
+    </div>
+  </dialog>
+  <script>document.getElementById('help').addEventListener('close', () => document.body.style.overflow = '')</script>
 
   <script src="scripts/ohm.min.js"></script>
   <script type="module" src="scripts/app.js"></script>

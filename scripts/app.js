@@ -253,7 +253,8 @@ function autoResize() {
 
 function sheetPreview(sheet) {
   const firstLine = (sheet.content || '').split('\n').find(l => l.trim()) || 'Empty sheet';
-  return firstLine.slice(0, 50);
+  const firstLineWithoutComment = firstLine.replace(/^\/\//, '');
+  return firstLineWithoutComment.slice(0, 50);
 }
 
 function renderSheetBar() {
@@ -264,7 +265,7 @@ function renderSheetBar() {
     const sheet = inactive[i];
     let tab = existing[i];
     if (!tab) {
-      tab = document.createElement('div');
+      tab = document.createElement('button');
       tab.className = 'sheet-tab';
       sheetBar.appendChild(tab);
     }
@@ -312,10 +313,11 @@ function switchToSheet(id) {
 
 function addSheet() {
   saveActiveSheet();
-  const sheet = { id: nextId(), content: '', lastEdited: Date.now() };
+  const defaultContent = `// New sheet\n1 x 2`;
+  const sheet = { id: nextId(), content: defaultContent, lastEdited: Date.now() };
   state.sheets.push(sheet);
   state.activeSheetId = sheet.id;
-  textarea.value = '';
+  textarea.value = defaultContent;
   syncVisuals();
   evalAndRender();
   saveSheets();
@@ -325,9 +327,13 @@ function addSheet() {
 
 function deleteSheet(id) {
   if (state.sheets.length <= 1) return;
-  if (!confirm('Delete this sheet?')) return;
 
   const idx = state.sheets.findIndex(s => s.id === id);
+  if (idx === -1) return;
+  if (state.sheets[idx].content.trim() !== '') {
+    if (!confirm('Delete this sheet?')) return;
+  }
+  
   state.sheets.splice(idx, 1);
 
   // If we deleted the active sheet, switch to the most recent one

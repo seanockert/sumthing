@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tinysums-002';
+const CACHE_NAME = 'tinysums-003';
 const urlsToCache = [
   '/',
   '/index.html',
