@@ -4,11 +4,10 @@
   <title>Tiny Sums - a calculation scratchpad</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, viewport-fit=cover, initial-scale=1.0, interactive-widget=resizes-content">
-  <meta name="description" content="A little text area that lets you calculate stuff with natural language">
+  <meta name="description" content="A scratchpad to calculate and convert things with natural language">
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="description" content="Tap the numbers in order. Get a high score!" />
   <link rel="apple-touch-icon" href="icon.png" />
   <link rel="shortcut icon" href="icon.png" />
   <link rel="manifest" href="/manifest.json" />
@@ -40,7 +39,7 @@
       --padding-half: 1rem;
       --padding-quarter: 0.5rem;
       --border-radius: 0.5rem;
-      --easing-overshoot: linear(0,-0.044 9.4%,-0.264 26.8%,-0.265 34%,-0.011 43%,0.91 55.2%,1.227 63.4%,1.276 67.6%,1.271 72.2%,1.044 90.6%,1);
+      --easing-base: cubic-bezier(0.2, 1.75, 0.5, 0.6);
       color-scheme: light dark;
     }
 
@@ -73,18 +72,18 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: transform 0.25s var(--easing-overshoot), color 0.1s ease-out;
+      transition: transform 0.6s var(--easing-base), color 0.1s ease-out;
       white-space: nowrap;
       -webkit-tap-highlight-color: transparent;
     }
 
     button:not(:disabled):hover,
     button:not(:disabled):focus-visible {
-      transform: scale(1.03);
+      transform: scale(1.04);
     }
 
     button:not(:disabled):active {
-      transform: scale(0.97, 1.03);
+      transform: scale(0.97, 1.04);
     }
 
     header {
@@ -267,7 +266,7 @@
       padding: 1rem 1.5rem 2rem 1.5rem;
       border-radius: var(--border-radius);
       transform: translateX(-50%) translateY(100%);
-      transition: transform 0.2s var(--easing-overshoot);
+      transition: transform 0.6s var(--easing-base);
       z-index: 100;
     }
 
@@ -356,40 +355,6 @@
       height: 1rem;
     }
 
-    :not([data-theme="dark"]) .theme-toggle .theme-light {
-      display: none;
-    }
-
-    [data-theme="dark"] .theme-toggle .theme-dark {
-      display: none;
-    }
-
-    [data-theme="dark"] .theme-toggle .theme-light {
-      display: flex;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :root {
-        color-scheme: dark;
-      }
-    }
-
-    [data-theme="dark"] {
-      color-scheme: dark;
-    }
-
-    @media (prefers-reduced-motion: no-preference) {
-      html {
-        interpolate-size: allow-keywords;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      * {
-        transition-duration: 0;
-      }
-    }
-
     @media (max-width: 640px) {
       :root {
         --font-size: 1.125rem;
@@ -427,6 +392,27 @@
       dialog {
         width: 96vw;
       }
+    }
+
+    [data-theme="dark"] { color-scheme: dark; }
+
+    :not([data-theme="dark"]) .theme-toggle .theme-light, 
+    [data-theme="dark"] .theme-toggle .theme-dark {
+      display: none;
+    }
+
+    [data-theme="dark"] .theme-toggle .theme-light { display: flex; }
+
+    @media (prefers-color-scheme: dark) {
+      :root { color-scheme: dark; }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      html { interpolate-size: allow-keywords; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition-duration: 0; }
     }
   </style>
 </head>

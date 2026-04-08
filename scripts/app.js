@@ -6,7 +6,6 @@ import { highlightAll } from './highlighter.js';
 import { fetchRates } from './currency.js';
 
 const SHEETS_KEY = 'tinysums';
-const ACTIVE_KEY = 'tinysums_active';
 const DEBOUNCE_MS = 300;
 
 const DEFAULT_INPUT = `// Define values to use below
@@ -61,6 +60,23 @@ const sheetBar = document.getElementById('sheetBar');
 const MOBILE_BP = 640;
 
 // ============================================================
+// URL encoding (URL-safe base64, Unicode-safe)
+// ============================================================
+
+function encodeContent(text) {
+  const bytes = new TextEncoder().encode(text);
+  const binary = Array.from(bytes, b => String.fromCharCode(b)).join('');
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function decodeContent(encoded) {
+  const base64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
+  const binary = atob(base64);
+  const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+
+// ============================================================
 // State
 // ============================================================
 
@@ -97,28 +113,45 @@ function nextId() {
 }
 
 function loadSheets() {
+  // Load existing sheets from localStorage
   const raw = localStorage.getItem(SHEETS_KEY);
   if (raw) {
     try {
       const parsed = JSON.parse(raw);
-      // Migrate string IDs to simple numbers
       let needsMigration = parsed.some(s => typeof s.id !== 'number');
-      if (needsMigration) {
-        parsed.forEach((s, i) => { s.id = i + 1; });
-      }
+      if (needsMigration) parsed.forEach((s, i) => { s.id = i + 1; });
       state.sheets = parsed;
-      // Prefer hash, then saved active, then first sheet
-      const hashId = parseInt(location.hash.slice(1), 10);
-      const savedId = parseInt(localStorage.getItem(ACTIVE_KEY), 10);
-      state.activeSheetId =
-        (hashId && state.sheets.find(s => s.id === hashId) ? hashId : null) ||
-        (savedId && state.sheets.find(s => s.id === savedId) ? savedId : null) ||
-        state.sheets[0]?.id;
       if (needsMigration) saveSheets();
+    } catch {
+      state.sheets = [];
+    }
+  }
+
+  // Check for base64-encoded content in the hash
+  const hash = location.hash.slice(1);
+  if (hash) {
+    try {
+      const content = decodeContent(hash);
+      const existing = state.sheets.find(s => s.content === content);
+      if (existing) {
+        state.activeSheetId = existing.id;
+        return;
+      }
+      const sheet = { id: nextId(), content, lastEdited: Date.now() };
+      state.sheets.push(sheet);
+      state.activeSheetId = sheet.id;
+      saveSheets();
       return;
     } catch {}
   }
 
+  // No hash — use first sheet
+  if (state.sheets.length) {
+    state.activeSheetId = state.sheets[0].id;
+    return;
+  }
+
+  // No sheets at all — create default
   const sheet = { id: 1, content: DEFAULT_INPUT, lastEdited: Date.now() };
   state.sheets = [sheet];
   state.activeSheetId = sheet.id;
@@ -127,12 +160,13 @@ function loadSheets() {
 
 function saveSheets() {
   localStorage.setItem(SHEETS_KEY, JSON.stringify(state.sheets));
-  localStorage.setItem(ACTIVE_KEY, state.activeSheetId);
   syncHash();
 }
 
 function syncHash() {
-  const target = '#' + state.activeSheetId;
+  const sheet = getActiveSheet();
+  if (!sheet) return;
+  const target = '#' + encodeContent(sheet.content);
   if (location.hash !== target) {
     history.replaceState(null, '', target);
   }
@@ -301,12 +335,7 @@ function switchToSheet(id) {
   textarea.value = sheet.content;
   syncVisuals();
   evalAndRender();
-  // Push to history so back/forward navigates between sheets
-  const target = '#' + id;
-  if (location.hash !== target) {
-    history.pushState(null, '', target);
-  }
-  localStorage.setItem(ACTIVE_KEY, state.activeSheetId);
+  saveSheets();
   renderSheetBar();
   textarea.focus();
 }
@@ -450,13 +479,6 @@ textarea.addEventListener('mouseleave', () => {
 });
 
 addSheetBtn.addEventListener('click', addSheet);
-
-window.addEventListener('hashchange', () => {
-  const hashId = parseInt(location.hash.slice(1), 10);
-  if (hashId && hashId !== state.activeSheetId && state.sheets.find(s => s.id === hashId)) {
-    switchToSheet(hashId);
-  }
-});
 
 // ============================================================
 // Initialize

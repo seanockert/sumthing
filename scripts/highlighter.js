@@ -52,8 +52,11 @@ export function highlightLine(line, definedVars) {
   // Currency codes (standalone, e.g. as conversion target: "in EUR")
   result = result.replace(/(?<![<\w])\b(USD|EUR|GBP|AUD|CAD|NZD|JPY|CHF|CNY|INR|SGD|HKD|KRW|SEK|NOK|DKK|BRL|ZAR|MXN|THB)\b(?![^<]*<\/span>)/gi, '<span class="hl-keyword">$1</span>');
 
-  // Keywords
-  result = result.replace(/\b(sum|total|now|today|prev|previous|avg|average|weeks?|months?|days?|hours?|minutes?|seconds?|celsius|fahrenheit|kelvin|tablespoons?|teaspoons?|cups?|gallons?|quarts?|pints?|grams?)\b/gi, '<span class="hl-keyword">$1</span>');
+  // Keywords — skip words that are user-defined variables
+  result = result.replace(/\b(sum|total|now|today|prev|previous|avg|average|weeks?|months?|days?|hours?|minutes?|seconds?|celsius|fahrenheit|kelvin|tablespoons?|teaspoons?|cups?|gallons?|quarts?|pints?|grams?)\b/gi, (match, word) => {
+    if (definedVars && definedVars.has(word)) return match;
+    return `<span class="hl-keyword">${word}</span>`;
+  });
 
   // Word operators
   result = result.replace(/\b(plus|minus|times|divided by|divided|and|with|without|at|off|on|of|pa|from now|from|into|in|to|for|as a percentage|as a percent|as|percentage|percent|compounding|monthly|quarterly|annually|yearly|daily|weekly|what|x)\b/gi, '<span class="hl-operator">$1</span>');
