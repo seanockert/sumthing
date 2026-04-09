@@ -283,8 +283,9 @@
       left: 50%;
       transform: translate3d(-50%, -50%, 0);
       border: none;
-      border-radius: var(--border-radius);
+      border-radius: 2rem 1rem 2rem 1rem;
       background: var(--color-bg);
+      corner-shape: superellipse(1.333);
       color: var(--color-text);
       z-index: 100;
       overflow: auto;
@@ -318,6 +319,10 @@
       letter-spacing: 0.03em;
     }
 
+    dialog header button {
+      margin-right: calc(var(--padding-quarter) * -1);
+    }
+
     dialog::backdrop {
       background: rgba(0,0,0,0.45);
       backdrop-filter: blur(4px);
@@ -334,6 +339,27 @@
 
     dialog section p {
       font-size: var(--font-size-small);
+    }
+
+    #intro {
+      text-align: center;
+    }
+
+    #intro header {
+      justify-content: center;
+      font-size: 120%;
+    }
+
+    #intro > div {
+      gap: var(--padding-half);
+    }
+
+    #intro button {
+      padding: var(--padding-half) var(--padding);
+      background: var(--color-green);
+      color: var(--color-bg);
+      border-radius: var(--border-radius);
+      margin: 0 auto;
     }
 
     button.theme-toggle span {
@@ -421,7 +447,7 @@
     <h1><svg width="24" height="24" fill="none" viewBox="0 0 196 196"><path fill="currentColor" d="M163.317 139.804a10.2 10.2 0 0 1-8.776 7.692L53.95 158.682a10.2 10.2 0 0 1-10.252-5.576 34 34 0 0 1-2.6-23.368 10.2 10.2 0 0 1 8.777-7.692l100.591-11.187a10.2 10.2 0 0 1 10.252 5.576 34 34 0 0 1 2.599 23.369M155.169 66.53a10.2 10.2 0 0 1-8.777 7.692L45.802 85.41a10.2 10.2 0 0 1-10.253-5.576 34 34 0 0 1-2.599-23.369 10.2 10.2 0 0 1 8.777-7.692l100.591-11.187a10.2 10.2 0 0 1 10.252 5.576 34 34 0 0 1 2.599 23.369"/></svg><em>Tiny</em>Sums</h1>
     
     <div>
-      <button onclick="document.getElementById('help').showModal(); document.body.style.overflow='hidden'">Help</button>
+      <button id="helpBtn">Help</button>
       <button class="icon" id="addSheet" title="New sheet" aria-label="New sheet">
         <svg fill="none" height="16" width="16" viewBox="0 0 24 24"><rect width="6" height="20" x="9" y="2" fill="currentColor" rx="3"/><rect width="6" height="20" x="21.8" y="8.4" fill="currentColor" rx="3" transform="rotate(87 21.8 8.4)"/></svg>
       </button>
@@ -440,12 +466,24 @@
 
   <div class="toast" id="toast">Copied!</div>
 
+  <dialog id="intro" onclick="if(event.target===this)this.close()">
+    <div>
+      <header><h2>Tiny Sums</h2></header>
+
+      <p>Got a calculation or conversion to make? Write them in natural language and get an instant answer.</p>
+      <p>No AI, offline, easily shareable.</p>
+
+      <form method="dialog">
+        <button>Try it!</button>
+      </form>
+    </div>
+  </dialog>
   <dialog id="help" onclick="if(event.target===this)this.close()">
     <div>
-      <header>How to use
+      <header><h2>How to use</h2>
         <form method="dialog">
           <button>
-            <svg fill="none" stroke="currentColor" stroke-width="1.5" height="20" width="20" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+            <svg fill="none" stroke="currentColor" stroke-width="1.5" height="24" width="24" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
           </button>
         </form>
       </header>
@@ -492,7 +530,7 @@
       <section>
         <h3>Unit conversions</h3>
         <pre><span class="hl-number">5km</span> <span class="hl-operator">in</span> <span class="hl-keyword">miles</span>
-<span class="hl-number">100f</span> <span class="hl-operator">to</span> <span class="hl-keyword">c</span>
+<span class="hl-number">100</span><span class="hl-keyword">f</span> <span class="hl-operator">to</span> <span class="hl-keyword">c</span>
 <span class="hl-number">2</span> <span class="hl-keyword">cups</span> <span class="hl-operator">in</span> <span class="hl-number">ml</span>
 <span class="hl-number">1</span> <span class="hl-keyword">gallon</span> <span class="hl-operator">in</span> <span class="hl-number">l</span>
 <span class="hl-number">1.5</span><span class="hl-keyword">tbsp</span> <span class="hl-operator">in</span> <span class="hl-keyword">grams</span></pre>
@@ -518,10 +556,10 @@
         <pre><span class="hl-number">$1000</span> <span class="hl-operator">for</span> <span class="hl-number">5</span> <span class="hl-keyword">years</span> <span class="hl-operator">at</span> <span class="hl-number">3%</span> <span class="hl-operator">monthly</span>
 <span class="hl-keyword">prev</span> <span class="hl-operator">+</span> <span class="hl-number">5</span> <span class="hl-comment">&rarr; previous result</span></pre>
       </section>
+
+      <section><p>Made by <a href="https://seanockert.com">Seano</a></p></section>
     </div>
   </dialog>
-  <script>document.getElementById('help').addEventListener('close', () => document.body.style.overflow = '')</script>
-
   <script src="scripts/ohm.min.js"></script>
   <script type="module" src="scripts/app.js"></script>
   <!-- <script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/service-worker.js'); }</script> -->

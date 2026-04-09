@@ -129,20 +129,21 @@ Convert between units with `in`, `to`, `into`, or `as`.
 
 ### Supported units
 
-| Category    | Units                                                            |
-| ----------- | ---------------------------------------------------------------- |
-| Length      | mm, cm, m, km, inch/inches ("), feet/ft ('), yard/yd, mile/mi   |
-| Mass        | mg, g/grams, kg                                                  |
-| Volume      | tsp, tbsp, floz, cup, pint/pt, quart/qt, l, gallon/gal, ml     |
-| Data        | b, kb, mb, gb                                                    |
-| Time        | sec/secs, min/mins, hr/hrs, day/days, week/weeks                 |
-| Speed       | kph (km/h, kmh, kmph), mph, mps (m/s), fps (ft/s), knot/knots  |
-| Temperature | celsius/c, fahrenheit/f, kelvin/k                                |
+| Category    | Units                                                         |
+| ----------- | ------------------------------------------------------------- |
+| Length      | mm, cm, m, km, inch/inches ("), feet/ft ('), yard/yd, mile/mi |
+| Mass        | mg, g/grams, kg                                               |
+| Volume      | tsp, tbsp, floz, cup, pint/pt, quart/qt, l, gallon/gal, ml    |
+| Data        | b, kb, mb, gb                                                 |
+| Time        | sec/secs, min/mins, hr/hrs, day/days, week/weeks              |
+| Speed       | kph (km/h, kmh, kmph), mph, mps (m/s), fps (ft/s), knot/knots |
+| Temperature | celsius/c, fahrenheit/f, kelvin/k                             |
 
 Volume and mass units can be cross-converted using water density (1 ml = 1 g):
 
 ```
 2 cups in ml
+How many cups in 1500 ml
 1 gallon in l
 1.5tbsp in grams
 100g in ml

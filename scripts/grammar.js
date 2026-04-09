@@ -23,6 +23,8 @@ TinySums {
     | Expression intoKw unitSuffix                   -- intoConversion
     | Expression asKw aKw? pctWord                   -- asPercent
     | Expression asKw unitSuffix                     -- asConversion
+    | howKw manyKw unitSuffix inKw Expression          -- howManyConversion
+    | unitSuffix inKw Expression                      -- reverseConversion
     | Expression
 
   PercentQuery
@@ -177,6 +179,8 @@ TinySums {
   toKw    = "to" ~alnum
   asKw    = "as" ~alnum
   aKw     = "a" ~alnum
+  howKw   = caseInsensitive<"how"> ~alnum
+  manyKw  = caseInsensitive<"many"> ~alnum
   pctWord = "percentage" ~alnum | "percent" ~alnum | "%"
 
   // --- Units ---

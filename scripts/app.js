@@ -1,6 +1,6 @@
 // TinySums app — UI glue: textarea, results, localStorage, copy
 
-import { evaluate } from './evaluator.js';
+import { evaluate, getGrammarAndSemantics } from './evaluator.js';
 import { formatResult } from './formatter.js';
 import { highlightAll } from './highlighter.js';
 import { fetchRates } from './currency.js';
@@ -25,6 +25,7 @@ sum
 5km in miles
 1.5tbsp in grams
 2 cups in ml
+How many cups in 1500 ml
 1 gallon in l
 68f to c
 64mph in km/h
@@ -44,9 +45,7 @@ today
 weeks in 2026
 15:30 GMT in AEST`;
 
-// ============================================================
 // DOM references
-// ============================================================
 
 const textarea = document.getElementById('input');
 const highlightLayer = document.getElementById('highlight');
@@ -57,11 +56,12 @@ const toast = document.getElementById('toast');
 const themeToggle = document.getElementById('themeToggle');
 const addSheetBtn = document.getElementById('addSheet');
 const sheetBar = document.getElementById('sheetBar');
+const introDialog = document.getElementById('intro');
+const helpDialog = document.getElementById('help');
+const helpBtn = document.getElementById('helpBtn');
 const MOBILE_BP = 640;
 
-// ============================================================
 // URL encoding (URL-safe base64, Unicode-safe)
-// ============================================================
 
 function encodeContent(text) {
   const bytes = new TextEncoder().encode(text);
@@ -76,9 +76,7 @@ function decodeContent(encoded) {
   return new TextDecoder().decode(bytes);
 }
 
-// ============================================================
 // State
-// ============================================================
 
 const state = {
   debounceTimer: null,
@@ -101,9 +99,7 @@ const metrics = {
 const measureCtx = document.createElement('canvas').getContext('2d');
 const HAS_FIELD_SIZING = CSS.supports('field-sizing', 'content');
 
-// ============================================================
 // Sheets persistence
-// ============================================================
 
 function nextId() {
   const used = state.sheets.map(s => s.id);
@@ -182,9 +178,7 @@ function sortedInactiveSheets() {
     .sort((a, b) => b.lastEdited - a.lastEdited);
 }
 
-// ============================================================
 // Core update loop
-// ============================================================
 
 function syncVisuals() {
   if (state.rafPending) return;
@@ -281,9 +275,7 @@ function autoResize() {
   }
 }
 
-// ============================================================
 // Sheet bar
-// ============================================================
 
 function sheetPreview(sheet) {
   const firstLine = (sheet.content || '').split('\n').find(l => l.trim()) || 'Empty sheet';
@@ -380,9 +372,19 @@ function deleteSheet(id) {
   textarea.focus();
 }
 
-// ============================================================
 // Clipboard
-// ============================================================
+
+function getSelectedLineRange() {
+  const text = textarea.value;
+  let { selectionStart, selectionEnd } = textarea;
+  if (selectionStart === selectionEnd) {
+    selectionStart = 0;
+    selectionEnd = text.length;
+  }
+  const start = text.slice(0, selectionStart).split('\n').length - 1;
+  const end = text.slice(0, selectionEnd).split('\n').length - 1;
+  return { start, end };
+}
 
 async function copyToClipboard(text) {
   try {
@@ -405,9 +407,7 @@ function showToast() {
   state.toastTimer = setTimeout(() => toast.classList.remove('visible'), 1200);
 }
 
-// ============================================================
 // Theme
-// ============================================================
 
 const THEME_KEY = 'tinysums_theme';
 
@@ -430,9 +430,45 @@ themeToggle.addEventListener('click', () => {
   applyTheme(current === 'dark' ? 'light' : 'dark');
 });
 
-// ============================================================
 // Event listeners
-// ============================================================
+
+textarea.addEventListener('copy', (e) => {
+  const results = evaluate(textarea.value);
+  const lines = textarea.value.split('\n');
+  const { start, end } = getSelectedLineRange();
+  const enriched = lines.map((line, i) => {
+    if (i < start || i > end) return line;
+    const formatted = formatResult(results[i]);
+    return formatted ? `${line},${formatted}` : line;
+  });
+  e.clipboardData.setData('text/plain', enriched.slice(start, end + 1).join('\n'));
+  e.preventDefault();
+});
+
+textarea.addEventListener('paste', (e) => {
+  const pasted = e.clipboardData.getData('text/plain');
+  if (!pasted.includes(',')) return; // no commas, nothing to strip
+  const { grammar } = getGrammarAndSemantics();
+  const stripped = pasted.split('\n').map(line => {
+    if (!line.includes(',')) return line;
+    const trimmed = line.trim();
+    if (!trimmed || grammar.match(trimmed).succeeded()) return line;
+    // Line doesn't parse — try stripping from each comma position (right to left)
+    for (let i = line.length - 1; i >= 0; i--) {
+      if (line[i] !== ',') continue;
+      const candidate = line.slice(0, i);
+      if (candidate.trim() && grammar.match(candidate.trim()).succeeded()) return candidate;
+    }
+    return line;
+  }).join('\n');
+
+  if (stripped !== pasted) {
+    e.preventDefault();
+    const start = textarea.selectionStart;
+    textarea.setRangeText(stripped, start, textarea.selectionEnd, 'end');
+    textarea.dispatchEvent(new Event('input'));
+  }
+});
 
 textarea.addEventListener('input', () => {
   syncVisuals();
@@ -480,9 +516,11 @@ textarea.addEventListener('mouseleave', () => {
 
 addSheetBtn.addEventListener('click', addSheet);
 
-// ============================================================
+helpBtn.addEventListener('click', () => { helpDialog.showModal(); document.body.style.overflow = 'hidden'; });
+helpDialog.addEventListener('close', () => { document.body.style.overflow = ''; });
+introDialog.addEventListener('close', () => { localStorage.setItem('tinysums_intro', '1'); document.body.style.overflow = ''; });
+
 // Initialize
-// ============================================================
 
 async function init() {
   initTheme();
@@ -500,6 +538,12 @@ async function init() {
     updateMobilePadding();
   });
   textarea.focus();
+
+  // Show intro dialog on first visit
+  if (!localStorage.getItem('tinysums_intro')) {
+    introDialog.showModal();
+    document.body.style.overflow = 'hidden';
+  }
 
   // Fetch currency rates in background, re-evaluate when ready
   const success = await fetchRates();

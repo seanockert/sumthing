@@ -484,6 +484,12 @@ export function getGrammarAndSemantics() {
     Calculation_asConversion(expr, _asKw, targetUnit) {
       return convertUnits(expr.eval(this.args.state), targetUnit.sourceString);
     },
+    Calculation_howManyConversion(_howKw, _manyKw, targetUnit, _inKw, expr) {
+      return convertUnits(expr.eval(this.args.state), targetUnit.sourceString);
+    },
+    Calculation_reverseConversion(targetUnit, _inKw, expr) {
+      return convertUnits(expr.eval(this.args.state), targetUnit.sourceString);
+    },
     Calculation(expr) { return expr.eval(this.args.state); },
 
     FromNow(expr, _fromKw, _nowKw) {
