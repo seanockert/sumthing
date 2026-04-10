@@ -1,11 +1,11 @@
-// TinySums app — UI glue: textarea, results, localStorage, copy
+// UI glue: textarea, results, localStorage, copy
 
 import { evaluate, getGrammarAndSemantics } from './evaluator.js';
 import { formatResult } from './formatter.js';
 import { highlightAll } from './highlighter.js';
 import { fetchRates } from './currency.js';
 
-const SHEETS_KEY = 'tinysums';
+const SHEETS_KEY = 'sumthing';
 const DEBOUNCE_MS = 300;
 
 const DEFAULT_INPUT = `// Define values to use below
@@ -62,7 +62,6 @@ const helpBtn = document.getElementById('helpBtn');
 const MOBILE_BP = 640;
 
 // URL encoding (URL-safe base64, Unicode-safe)
-
 function encodeContent(text) {
   const bytes = new TextEncoder().encode(text);
   const binary = Array.from(bytes, b => String.fromCharCode(b)).join('');
@@ -77,7 +76,6 @@ function decodeContent(encoded) {
 }
 
 // State
-
 const state = {
   debounceTimer: null,
   rafPending: false,
@@ -100,7 +98,6 @@ const measureCtx = document.createElement('canvas').getContext('2d');
 const HAS_FIELD_SIZING = CSS.supports('field-sizing', 'content');
 
 // Sheets persistence
-
 function nextId() {
   const used = state.sheets.map(s => s.id);
   let id = 1;
@@ -179,7 +176,6 @@ function sortedInactiveSheets() {
 }
 
 // Core update loop
-
 function syncVisuals() {
   if (state.rafPending) return;
   state.rafPending = true;
@@ -223,15 +219,26 @@ function updateMobilePadding() {
   }
   measureCtx.font = metrics.measureFont;
 
-  const textareaWidth = textarea.clientWidth;
-  const maxOverlap = textarea.value.split('\n').reduce((max, line, i) => {
-    const resultEl = outputContainer.children[i];
-    if (!resultEl?.firstChild) return max;
-    const overlap = measureCtx.measureText(line).width + metrics.paddingLeft + resultEl.offsetWidth - textareaWidth;
-    return overlap > max ? overlap : max;
-  }, 0);
+  const containerWidth = textarea.parentElement.clientWidth;
+  let maxOverlap = 0;
+  let maxLineWidth = 0;
 
-  textarea.style.paddingRight = maxOverlap > 0 ? (maxOverlap + 16) + 'px' : '';
+  textarea.value.split('\n').forEach((line, i) => {
+    const textWidth = measureCtx.measureText(line).width;
+    if (textWidth > maxLineWidth) maxLineWidth = textWidth;
+    const resultEl = outputContainer.children[i];
+    if (!resultEl?.firstChild) return;
+    const overlap = textWidth + metrics.paddingLeft + resultEl.offsetWidth - containerWidth;
+    if (overlap > maxOverlap) maxOverlap = overlap;
+  });
+
+  if (maxOverlap > 0) {
+    const naturalScroll = maxLineWidth + metrics.paddingLeft - containerWidth;
+    const needed = maxOverlap + 16 - naturalScroll;
+    textarea.style.paddingRight = needed > 0 ? needed + 'px' : '';
+  } else {
+    textarea.style.paddingRight = '';
+  }
 }
 
 function renderOutput(results) {
@@ -276,7 +283,6 @@ function autoResize() {
 }
 
 // Sheet bar
-
 function sheetPreview(sheet) {
   const firstLine = (sheet.content || '').split('\n').find(l => l.trim()) || 'Empty sheet';
   const firstLineWithoutComment = firstLine.replace(/^\/\//, '');
@@ -373,7 +379,6 @@ function deleteSheet(id) {
 }
 
 // Clipboard
-
 function getSelectedLineRange() {
   const text = textarea.value;
   let { selectionStart, selectionEnd } = textarea;
@@ -408,8 +413,7 @@ function showToast() {
 }
 
 // Theme
-
-const THEME_KEY = 'tinysums_theme';
+const THEME_KEY = 'sumthing_theme';
 
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
@@ -431,7 +435,6 @@ themeToggle.addEventListener('click', () => {
 });
 
 // Event listeners
-
 textarea.addEventListener('copy', (e) => {
   const results = evaluate(textarea.value);
   const lines = textarea.value.split('\n');
@@ -518,10 +521,9 @@ addSheetBtn.addEventListener('click', addSheet);
 
 helpBtn.addEventListener('click', () => { helpDialog.showModal(); document.body.style.overflow = 'hidden'; });
 helpDialog.addEventListener('close', () => { document.body.style.overflow = ''; });
-introDialog.addEventListener('close', () => { localStorage.setItem('tinysums_intro', '1'); document.body.style.overflow = ''; });
+introDialog.addEventListener('close', () => { localStorage.setItem('sumthing_intro', '1'); document.body.style.overflow = ''; });
 
-// Initialize
-
+// Init
 async function init() {
   initTheme();
   loadSheets();
@@ -540,7 +542,7 @@ async function init() {
   textarea.focus();
 
   // Show intro dialog on first visit
-  if (!localStorage.getItem('tinysums_intro')) {
+  if (!localStorage.getItem('sumthing_intro')) {
     introDialog.showModal();
     document.body.style.overflow = 'hidden';
   }

@@ -1,5 +1,4 @@
-// TinySums currency module — fetch, cache, and convert exchange rates
-
+// Currency module — fetch, cache, and convert exchange rates
 export const CURRENCY_CODES = new Set([
   'usd', 'eur', 'gbp', 'aud', 'cad', 'nzd', 'jpy', 'chf',
   'cny', 'inr', 'sgd', 'hkd', 'krw', 'sek', 'nok', 'dkk',

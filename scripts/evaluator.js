@@ -1,12 +1,8 @@
-// TinySums evaluator — unit system, state management, ohm semantic actions
-
+// Evaluator — unit system, state management, ohm semantic actions
 import { grammarSource } from './grammar.js';
 import { convertCurrency, getDefaultCurrencyCode, SYMBOL_TO_CODE, CODE_TO_SYMBOL } from './currency.js';
 
-// ============================================================
 // Unit System
-// ============================================================
-
 const UNIT_GROUPS = {
   mass:   { mg: 0.001, g: 1, kg: 1000 },
   volume: { ml: 1, tsp: 5, tbsp: 15, floz: 29.5735, cup: 240, pint: 473.176, quart: 946.353, l: 1000, gallon: 3785.41 },
@@ -99,10 +95,7 @@ function bestUnit(baseValue, group) {
   return { value: baseValue / smallest[1], unit: smallest[0] };
 }
 
-// ============================================================
 // Result helpers
-// ============================================================
-
 function result(value, prefix = '', unit = null, unitGroup = null, currencyCode = null) {
   const r = { value, prefix, unit, unitGroup };
   if (currencyCode) r.currencyCode = currencyCode;
@@ -229,10 +222,7 @@ function divideResults(a, b) {
   return result(a.value / b.value, prefix, a.unit, a.unitGroup, a.currencyCode);
 }
 
-// ============================================================
 // Evaluation State
-// ============================================================
-
 export class State {
   constructor() {
     this.variables = new Map();
@@ -281,10 +271,7 @@ export class State {
   }
 }
 
-// ============================================================
 // Timezone conversion
-// ============================================================
-
 const TZ_MAP = {
   UTC:  'UTC',
   GMT:  'Europe/London',
@@ -359,20 +346,14 @@ function buildDateFromTime(hours, minutes, sourceIana) {
   return new Date(naive.getTime() - (srcMs - utcMs));
 }
 
-// ============================================================
 // Compound interest
-// ============================================================
-
 function compound(principal, annualRate, years, frequency) {
   if (!frequency) frequency = 12;
   const r = annualRate / 100;
   return principal * Math.pow(1 + r / frequency, frequency * years);
 }
 
-// ============================================================
 // Build grammar + semantics
-// ============================================================
-
 function convertUnits(val, targetUnitStr) {
   const target = normalizeUnit(targetUnitStr);
   const group = UNIT_TO_GROUP[target];
@@ -794,10 +775,7 @@ export function getGrammarAndSemantics() {
   return { grammar: _grammar, semantics: _semantics };
 }
 
-// ============================================================
 // Main evaluation function — processes all lines
-// ============================================================
-
 export function evaluate(input) {
   const { grammar, semantics } = getGrammarAndSemantics();
   const state = new State();

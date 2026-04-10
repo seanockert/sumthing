@@ -1,8 +1,7 @@
-// TinySums ohm.js grammar definition
+// ohm.js grammar definition
 // Parses a single line of input at a time
-
 export const grammarSource = String.raw`
-TinySums {
+Sumthing {
   Line
     = Comment
     | CompoundInterest

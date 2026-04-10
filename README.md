@@ -1,10 +1,10 @@
-# Tiny Sums v2
+# Sumthing
 
-A little text area that lets you calculate stuff with natural language.
+A notepad for quick math. Too much for a calculator, too little for a spreadsheet? Just type. Mix math, conversions, currencies, and notes in plain text — answers appear as you go.
 
-Based on an Ohm.js parser, allows you to set variables and do back of the envelope calculations line by line. Useful for when you don't need something as complex as a spreadsheet.
+No AI. Works offline. Share via URL.
 
-[Demo here](https://tinysums.seanockert.com)
+[Demo here](https://sumthing.seanockert.com)
 
 ### Example
 
@@ -143,10 +143,10 @@ Volume and mass units can be cross-converted using water density (1 ml = 1 g):
 
 ```
 2 cups in ml
-How many cups in 1500 ml
 1 gallon in l
 1.5tbsp in grams
 100g in ml
+How many cups in 1500 ml
 ```
 
 ### Fractional units

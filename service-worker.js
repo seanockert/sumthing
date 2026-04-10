@@ -1,8 +1,8 @@
-const CACHE_NAME = 'tinysums-003';
+const CACHE_NAME = 'sumthing-001';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/icon.png',
+  '/icon-sumthing.png',
   '/scripts/ohm.min.js',
   '/scripts/app.js',
   '/scripts/evaluator.js',

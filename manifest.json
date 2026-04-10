@@ -1,16 +1,16 @@
 {
-  "name": "Tiny Sums",
-  "short_name": "Tiny Sums",
-  "description": "A little text area that lets you calculate stuff with natural language",
+  "name": "Sumthing",
+  "short_name": "Sumthing",
+  "description": "A plain-text scratchpad for quick math, unit conversions, and currencies. Type calculations like you'd scribble them on a napkin — answers appear instantly.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "background_color": "#F1F3F6",
+  "theme_color": "#F1F3F6",
   "icons": [
     {
-      "src": "icon.png",
-      "sizes": "192x192",
+      "src": "icon-sumthing.png",
+      "sizes": "128x128",
       "type": "image/png"
     }
   ]

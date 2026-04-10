@@ -1,5 +1,4 @@
-// TinySums syntax highlighter — regex-based tokenizer
-
+// Syntax highlighter — regex-based tokenizer
 function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
