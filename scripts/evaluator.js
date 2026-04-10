@@ -5,7 +5,7 @@ import { convertCurrency, getDefaultCurrencyCode, SYMBOL_TO_CODE, CODE_TO_SYMBOL
 // Unit System
 const UNIT_GROUPS = {
   mass:   { mg: 0.001, g: 1, kg: 1000 },
-  volume: { ml: 1, tsp: 5, tbsp: 15, floz: 29.5735, cup: 240, pint: 473.176, quart: 946.353, l: 1000, gallon: 3785.41 },
+  volume: { ml: 1, tsp: 5, tbsp: 15, floz: 29.5735, cup: 236.588, pint: 473.176, quart: 946.353, l: 1000, gallon: 3785.41 },
   length: { mm: 1, cm: 10, m: 1000, km: 1000000, inch: 25.4, ft: 304.8, yd: 914.4, mi: 1609344 },
   data:   { b: 1, kb: 1024, mb: 1048576, gb: 1073741824 },
   time:   { sec: 1, min: 60, hr: 3600, day: 86400, week: 604800 },

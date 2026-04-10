@@ -4,6 +4,7 @@ import { evaluate, getGrammarAndSemantics } from './evaluator.js';
 import { formatResult } from './formatter.js';
 import { highlightAll } from './highlighter.js';
 import { fetchRates } from './currency.js';
+import { initTypingDemo } from './typing-demo.js';
 
 const SHEETS_KEY = 'sumthing';
 const DEBOUNCE_MS = 300;
@@ -431,7 +432,13 @@ function initTheme() {
 
 themeToggle.addEventListener('click', () => {
   const current = document.documentElement.getAttribute('data-theme');
-  applyTheme(current === 'dark' ? 'light' : 'dark');
+  const next = current === 'dark' ? 'light' : 'dark';
+  const isIOS = /iPad|iPhone/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (!document.startViewTransition || isIOS) {
+    applyTheme(next);
+    return;
+  }
+  document.startViewTransition(() => applyTheme(next));
 });
 
 // Event listeners
@@ -519,9 +526,20 @@ textarea.addEventListener('mouseleave', () => {
 
 addSheetBtn.addEventListener('click', addSheet);
 
+document.querySelector('h1').addEventListener('click', () => {
+  introDialog.showModal();
+  document.body.style.overflow = 'hidden';
+  stopTypingDemo = initTypingDemo(document.getElementById('typingDemo'));
+});
+
 helpBtn.addEventListener('click', () => { helpDialog.showModal(); document.body.style.overflow = 'hidden'; });
 helpDialog.addEventListener('close', () => { document.body.style.overflow = ''; });
-introDialog.addEventListener('close', () => { localStorage.setItem('sumthing_intro', '1'); document.body.style.overflow = ''; });
+let stopTypingDemo;
+introDialog.addEventListener('close', () => {
+  localStorage.setItem('sumthing_intro', '1');
+  document.body.style.overflow = '';
+  if (stopTypingDemo) stopTypingDemo();
+});
 
 // Init
 async function init() {
@@ -545,6 +563,7 @@ async function init() {
   if (!localStorage.getItem('sumthing_intro')) {
     introDialog.showModal();
     document.body.style.overflow = 'hidden';
+    stopTypingDemo = initTypingDemo(document.getElementById('typingDemo'));
   }
 
   // Fetch currency rates in background, re-evaluate when ready
