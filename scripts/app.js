@@ -9,7 +9,19 @@ import { initTypingDemo } from './typing-demo.js';
 const SHEETS_KEY = 'sumthing';
 const DEBOUNCE_MS = 300;
 
-const DEFAULT_INPUT = `// Define values to use below
+const DEFAULT_INPUT = `// Convert units
+5km in miles
+1.5tbsp in grams
+2 cups in ml
+How many cups in 1500 ml
+1 gallon in l
+68f to c
+64mph in km/h
+
+// Add different units
+20kg plus 1900g
+
+// Define values to reuse
 days = 15
 
 // Define some variables
@@ -18,18 +30,6 @@ transport: $3.50 x days
 
 // Add up all the above
 sum
-
-// Use units like kg
-20kg plus 1900g
-
-// Convert units
-5km in miles
-1.5tbsp in grams
-2 cups in ml
-How many cups in 1500 ml
-1 gallon in l
-68f to c
-64mph in km/h
 
 // Percentages
 32% off $429
@@ -526,20 +526,69 @@ textarea.addEventListener('mouseleave', () => {
 
 addSheetBtn.addEventListener('click', addSheet);
 
-document.querySelector('h1').addEventListener('click', () => {
-  introDialog.showModal();
-  document.body.style.overflow = 'hidden';
-  stopTypingDemo = initTypingDemo(document.getElementById('typingDemo'));
-});
+let stopTypingDemo;
+
+function showIntro() {
+  introDialog.classList.remove('is-entering');
+  requestAnimationFrame(() => {
+    introDialog.showModal();
+    introDialog.classList.add('is-entering');
+    document.body.style.overflow = 'hidden';
+    stopTypingDemo = initTypingDemo(document.getElementById('typingDemo'));
+  });
+}
+
+document.querySelector('h1').addEventListener('click', showIntro);
 
 helpBtn.addEventListener('click', () => { helpDialog.showModal(); document.body.style.overflow = 'hidden'; });
 helpDialog.addEventListener('close', () => { document.body.style.overflow = ''; });
-let stopTypingDemo;
 introDialog.addEventListener('close', () => {
   localStorage.setItem('sumthing_intro', '1');
   document.body.style.overflow = '';
+  introDialog.classList.remove('is-entering');
   if (stopTypingDemo) stopTypingDemo();
 });
+
+// Monster
+const eyes = document.querySelectorAll('.m-eye');
+const pupils = document.querySelectorAll('.m-eye-pupil');
+
+if (eyes.length && pupils.length) {
+  function blinkRandomly() {
+    eyes.forEach(eye => eye.classList.add('is-blinking'));
+    setTimeout(() => {
+      eyes.forEach(eye => eye.classList.remove('is-blinking'));
+      setTimeout(blinkRandomly, Math.random() * 4000 + 2000);
+    }, 150);
+  }
+
+  setTimeout(blinkRandomly, 2000);
+
+  const MAX_RADIUS = 8;
+  let pupilRafPending = false;
+  let pendingMoveX = 0, pendingMoveY = 0;
+
+  document.addEventListener('mousemove', (e) => {
+    let xRatio = ((e.clientX / window.innerWidth) - 0.5) * 2;
+    let yRatio = ((e.clientY / window.innerHeight) - 0.5) * 2;
+    const distance = Math.sqrt(xRatio * xRatio + yRatio * yRatio);
+
+    if (distance > 1) {
+      xRatio /= distance;
+      yRatio /= distance;
+    }
+
+    pendingMoveX = xRatio * MAX_RADIUS;
+    pendingMoveY = yRatio * MAX_RADIUS;
+
+    if (pupilRafPending) return;
+    pupilRafPending = true;
+    requestAnimationFrame(() => {
+      pupils.forEach(pupil => pupil.style.transform = `translate(${pendingMoveX}px, ${pendingMoveY}px)`);
+      pupilRafPending = false;
+    });
+  });
+}
 
 // Init
 async function init() {
@@ -561,9 +610,7 @@ async function init() {
 
   // Show intro dialog on first visit
   if (!localStorage.getItem('sumthing_intro')) {
-    introDialog.showModal();
-    document.body.style.overflow = 'hidden';
-    stopTypingDemo = initTypingDemo(document.getElementById('typingDemo'));
+    showIntro();
   }
 
   // Fetch currency rates in background, re-evaluate when ready
