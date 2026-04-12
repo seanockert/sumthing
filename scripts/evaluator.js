@@ -6,7 +6,7 @@ const UNIT_GROUPS = {
   volume: { ml: 1, tsp: 5, tbsp: 15, floz: 29.5735, cup: 236.588, pint: 473.176, quart: 946.353, l: 1000, gallon: 3785.41 },
   length: { mm: 1, cm: 10, m: 1000, km: 1000000, inch: 25.4, ft: 304.8, yd: 914.4, mi: 1609344 },
   data:   { b: 1, kb: 1024, mb: 1048576, gb: 1073741824 },
-  time:   { sec: 1, min: 60, hr: 3600, day: 86400, week: 604800 },
+  time:   { sec: 1, min: 60, hr: 3600, day: 86400, week: 604800, month: 2629800, year: 31557600 },
   speed:  { kph: 1, mph: 1.60934, mps: 3.6, fps: 1.09728, knot: 1.852 },
 };
 
@@ -30,7 +30,7 @@ function normalizeUnit(raw) {
   const u = raw.toLowerCase();
   const aliases = {
     secs: 'sec', mins: 'min', hrs: 'hr', hour: 'hr', hours: 'hr',
-    days: 'day', weeks: 'week',
+    days: 'day', weeks: 'week', months: 'month', years: 'year',
     inches: 'inch', '"': 'inch', "'": 'ft',
     feet: 'ft', foot: 'ft',
     yards: 'yd', yard: 'yd',
@@ -577,22 +577,6 @@ export function getGrammarAndSemantics() {
       return r;
     },
 
-    // --- Time in year ---
-    TimeInYear(unitWord, _inKw, yearNum) {
-      const unit = unitWord.sourceString.trim().toLowerCase();
-      const year = parseInt(yearNum.sourceString);
-      const isLeap = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
-      const daysInYear = isLeap ? 366 : 365;
-      let value;
-      if (unit === 'months' || unit === 'month') value = 12;
-      else if (unit === 'weeks' || unit === 'week') value = daysInYear / 7;
-      else if (unit === 'days' || unit === 'day') value = daysInYear;
-      else if (unit === 'hours' || unit === 'hour') value = daysInYear * 24;
-      else if (unit === 'minutes' || unit === 'minute') value = daysInYear * 24 * 60;
-      else if (unit === 'seconds' || unit === 'second') value = daysInYear * 24 * 3600;
-      else value = 0;
-      return result(value);
-    },
 
     // --- Percentages ---
     PercentOf(num, _pct, _of, expr) {
@@ -722,7 +706,6 @@ export function getGrammarAndSemantics() {
     whatKw(_) { return null; },
     ofKw(_) { return null; },
     offKw(_) { return null; },
-    timeUnitWord(_) { return null; },
     reserved(_) { return null; },
     nameStart(_) { return null; },
     nameRest(_) { return null; },

@@ -2,7 +2,8 @@ const CACHE_NAME = 'sumthing-001';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/icon-sumthing.png',
+  '/icon-192.png',
+  '/icon-192-filled.png',
   '/scripts/ohm.min.js',
   '/scripts/app.js',
   '/scripts/evaluator.js',

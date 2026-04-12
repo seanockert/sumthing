@@ -40,8 +40,8 @@ $4000.22 at 3% pa
 1000 JPY in AUD
 
 // Dates and timezones
-today
-weeks in 2026
+5 days from now
+weeks in 4 years
 15:30 GMT in AEST`;
 
 const textarea = document.getElementById('input');
@@ -321,6 +321,7 @@ function switchToSheet(id) {
   state.activeSheetId = id;
   const sheet = getActiveSheet();
   textarea.value = sheet.content;
+  prevLineCount = textarea.value.split('\n').length;
   syncVisuals();
   evalAndRender();
   saveSheets();
@@ -335,6 +336,7 @@ function addSheet() {
   state.sheets.push(sheet);
   state.activeSheetId = sheet.id;
   textarea.value = defaultContent;
+  prevLineCount = textarea.value.split('\n').length;
   syncVisuals();
   evalAndRender();
   saveSheets();
@@ -358,6 +360,7 @@ function deleteSheet(id) {
     state.activeSheetId = sorted[0].id;
     const sheet = getActiveSheet();
     textarea.value = sheet.content;
+    prevLineCount = textarea.value.split('\n').length;
     syncVisuals();
     evalAndRender();
   }
@@ -394,6 +397,7 @@ const THEME_KEY = 'sumthing_theme';
 
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
+  document.documentElement.style.colorScheme = theme;
   localStorage.setItem(THEME_KEY, theme);
 }
 
@@ -455,10 +459,18 @@ textarea.addEventListener('paste', (e) => {
   }
 });
 
+let prevLineCount = 0;
+
 textarea.addEventListener('input', () => {
   syncVisuals();
+  const lineCount = textarea.value.split('\n').length;
   clearTimeout(state.debounceTimer);
-  state.debounceTimer = setTimeout(evalAndSave, DEBOUNCE_MS);
+  if (lineCount !== prevLineCount) {
+    prevLineCount = lineCount;
+    evalAndSave();
+  } else {
+    state.debounceTimer = setTimeout(evalAndSave, DEBOUNCE_MS);
+  }
 });
 
 textarea.addEventListener('scroll', () => {
@@ -569,6 +581,7 @@ async function init() {
   loadSheets();
   const sheet = getActiveSheet();
   textarea.value = sheet.content;
+  prevLineCount = textarea.value.split('\n').length;
   syncVisuals();
   cacheTextareaMetrics();
   evalAndRender();

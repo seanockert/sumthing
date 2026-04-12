@@ -1,7 +1,7 @@
 {
   "name": "Sumthing",
   "short_name": "Sumthing",
-  "description": "A plain-text scratchpad for quick math, unit conversions, and currencies. Type calculations like you'd scribble them on a napkin — answers appear instantly.",
+  "description": "A notepad for quick math, conversions, and currencies. Scribble them down and get instant answers. No AI. Works offline. Shareable.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -9,8 +9,8 @@
   "theme_color": "#F1F3F6",
   "icons": [
     {
-      "src": "icon-sumthing.png",
-      "sizes": "128x128",
+      "src": "icon-192-filled.png",
+      "sizes": "192x192",
       "type": "image/png"
     }
   ]

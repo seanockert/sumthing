@@ -4,12 +4,12 @@
   <title>Sumthing — a notepad for quick math</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, viewport-fit=cover, initial-scale=1.0, interactive-widget=resizes-content">
-  <meta name="description" content="A plain-text scratchpad for quick math, unit conversions, and currencies. Type calculations like you'd scribble them on a napkin — answers appear instantly.">
+  <meta name="description" content="A notepad for quick math, conversions, and currencies. Scribble them down and get instant answers. No AI. Works offline. Shareable.">
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <link rel="apple-touch-icon" href="icon-sumthing.png" />
-  <link rel="shortcut icon" href="icon-sumthing.png" />
+  <link rel="apple-touch-icon" href="icon-192-filled.png" />
+  <link rel="shortcut icon" href="icon-192.png" />
   <link rel="manifest" href="/manifest.json" />
   <meta property="og:title" content="Sumthing" />
   <meta property="og:image" content="https://sumthing.seanockert.com/cover.png"/>
@@ -196,7 +196,8 @@
 
     .output-container {
       border-left: 1px solid var(--color-border);
-      padding: var(--padding) var(--padding) var(--padding) var(--padding-half);
+      padding: var(--padding-half) var(--padding) var(--padding) var(--padding-half);
+      margin-top: var(--padding-half);
       text-align: right;
       min-width: 10ch;
     }
@@ -531,6 +532,7 @@
         padding: var(--padding) 0;
         pointer-events: none;
         position: absolute;
+        margin: 0;
         right: 0;
         z-index: 3;
       }
@@ -591,6 +593,8 @@
         mask-size: 200vmax;
       }
     }
+
+    [data-theme="light"] { color-scheme: light; }
 
     @media (prefers-color-scheme: dark) {
       :root:not([data-theme="light"]) { color-scheme: dark; }
@@ -691,7 +695,7 @@
 
       <p>Just type. Mix math, conversions, currencies in plain text.</p>
       <p>Instant answers.</p>
-      <p>No AI. Works offline. Share the link.</p>
+      <p>No AI. Works offline. Shareable.</p>
 
       <form method="dialog">
         <button>Try it!</button>

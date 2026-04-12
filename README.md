@@ -196,8 +196,7 @@ today                  // current date
 now                    // current date and time
 5 days from now
 2 hours from now
-days in 2025           // 365
-weeks in 2024          // 52.14 (accounts for leap years)
+weeks in 4 years       // 208.71
 ```
 
 ## Comments

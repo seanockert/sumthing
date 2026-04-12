@@ -66,7 +66,6 @@ Sumthing {
     | PercentOf
     | PercentOn
     | Percent
-    | TimeInYear
     | Quantity
     | CurrencyWithCode
     | Currency
@@ -78,17 +77,6 @@ Sumthing {
 
   Percent
     = number "%"
-
-  TimeInYear
-    = timeUnitWord inKw number
-
-  timeUnitWord
-    = "weeks" ~alnum | "week" ~alnum
-    | "months" ~alnum | "month" ~alnum
-    | "days" ~alnum | "day" ~alnum
-    | "hours" ~alnum | "hour" ~alnum
-    | "minutes" ~alnum | "minute" ~alnum
-    | "seconds" ~alnum | "second" ~alnum
 
   // --- Aggregation keywords ---
   Sum
@@ -277,6 +265,8 @@ Sumthing {
     | caseInsensitive<"feet"> ~alnum | caseInsensitive<"foot"> ~alnum | caseInsensitive<"ft">
     | caseInsensitive<"yards"> ~alnum | caseInsensitive<"yard"> ~alnum | caseInsensitive<"yd"> ~alnum
     | caseInsensitive<"miles"> ~alnum | caseInsensitive<"mile"> ~alnum | caseInsensitive<"mi"> ~alnum
+    | caseInsensitive<"years"> ~alnum | caseInsensitive<"year"> ~alnum
+    | caseInsensitive<"months"> ~alnum | caseInsensitive<"month"> ~alnum
     | caseInsensitive<"weeks"> ~alnum | caseInsensitive<"week"> ~alnum
     | caseInsensitive<"hours"> ~alnum | caseInsensitive<"hour"> ~alnum
     | caseInsensitive<"days"> ~alnum | caseInsensitive<"day"> ~alnum
