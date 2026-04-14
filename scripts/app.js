@@ -53,6 +53,7 @@ const outputContainer = document.getElementById('output');
 const toast = document.getElementById('toast');
 const themeToggle = document.getElementById('themeToggle');
 const addSheetBtn = document.getElementById('addSheet');
+const shareSheetBtn = document.getElementById('shareSheet');
 const sheetBar = document.getElementById('sheetBar');
 const introDialog = document.getElementById('intro');
 const helpDialog = document.getElementById('help');
@@ -345,6 +346,15 @@ function addSheet() {
   textarea.focus();
 }
 
+function shareSheet() {
+  const sheet = getActiveSheet();
+  if (!sheet) return;
+  const content = encodeContent(sheet.content);
+  const url = `${location.origin}#${content}`;
+  navigator.clipboard.writeText(url);
+  showToast();
+}
+
 function deleteSheet(id) {
   if (state.sheets.length <= 1) return;
 
@@ -513,6 +523,7 @@ textarea.addEventListener('mouseleave', () => {
 });
 
 addSheetBtn.addEventListener('click', addSheet);
+shareSheetBtn.addEventListener('click', shareSheet);
 
 let stopTypingDemo;
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sumthing-001';
+const CACHE_NAME = 'sumthing-003';
 const urlsToCache = [
   '/',
   '/index.html',
