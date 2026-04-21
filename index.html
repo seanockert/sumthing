@@ -67,6 +67,10 @@
       -webkit-font-smoothing: antialiased;
     }
 
+    body:has(dialog[open]) {
+      overflow: hidden;
+    }
+
     svg {
       flex-shrink: 0;
       max-width: 100%;
@@ -404,6 +408,11 @@
       }
     }
 
+    #help {
+      margin-top: env(safe-area-inset-top);
+      margin-bottom: env(safe-area-inset-bottom);
+      padding-bottom: 2rem;
+    }
 
     .typing-demo {
       display: flex;

@@ -48,7 +48,6 @@ weeks in 4 years
 const textarea = document.getElementById('input');
 const highlightLayer = document.getElementById('highlight');
 const highlightInner = document.createElement('div');
-highlightLayer.appendChild(highlightInner);
 const outputContainer = document.getElementById('output');
 const toast = document.getElementById('toast');
 const themeToggle = document.getElementById('themeToggle');
@@ -61,6 +60,8 @@ const helpBtn = document.getElementById('helpBtn');
 const typingDemo = document.getElementById('typingDemo');
 const heading = document.querySelector('h1');
 const MOBILE_BP = 640;
+
+highlightLayer.appendChild(highlightInner);
 
 function encodeContent(text) {
   const bytes = new TextEncoder().encode(text);
